@@ -1,0 +1,10 @@
+POWERHOUSE AI V60.1 — Pastel Rainbow UI + Volume Intelligence + Navigation Repair
+
+- Fixed V55 BREAKOUT navigation: dedicated page target, no V55→V60 remap.
+- Added dedicated V57 Opportunity Radar and V58 Market OS pages so previous engines are directly accessible.
+- Added System Audit page that reports which historical engine payloads are present and live data coverage for RVOL/structure/depth/OI/VWAP.
+- Added read-only Volume Intelligence engine and /api/v60/volume-shockers endpoint.
+- Volume Intelligence supports verified RVOL, session-observed live burst ratio, sustained-volume state, bullish/bearish separation and evidence-quality ranking.
+- Added animated pastel-rainbow background, glass cards, hover/press transitions and reduced-motion accessibility.
+- All nav targets validated; no missing page target remains.
+- Read-only/no-execution/data-truth policy preserved.

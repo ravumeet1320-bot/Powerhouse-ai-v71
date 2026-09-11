@@ -1,0 +1,26 @@
+POWERHOUSE AI V54 — VISUAL INTELLIGENCE TERMINAL
+
+Cumulative upgrade from V53. No useful legacy module removed.
+
+ADDED
+- V54 backend visual-intelligence layer (v54_engine.py).
+- Stock/sector heatmap with Move, Volume/RVOL, Depth, Setup Quality and 52W metric modes.
+- Index option CE/Strike/PE heatmap with Activity, OI, Delta OI, Volume, IV, Depth and Spread modes.
+- On-demand stock option heatmap endpoint with expiry selection: /api/v54/stock-option-heatmap.
+- Animated pressure bars for market breadth, visible option volume/OI share and best-setup evidence quality.
+- Decision flow chart showing freshness, opportunity room, volume/structure, liquidity, red-team and final action state.
+- Multi-level displayed depth capture (up to 20 levels) from Upstox full WebSocket marketLevel.bidAskQuote when available.
+- ATM CE/PE depth ladder visualization and stock top-of-book imbalance bars.
+- Reduced-motion CSS support and non-casino animation policy.
+- PWA cache bump to powerhouse-ai-v54.
+
+DATA TRUTH
+- Depth means displayed order-book liquidity only. It is not proof of institutional identity, spoofing or manipulation.
+- Heatmap intensity/activity/setup scores are descriptive evidence quality, not probability of profit.
+- Stock option chains are loaded on demand rather than continuously polling every stock.
+- Missing 52W/RVOL/news/participant-labelled sources stay N/A/UNAVAILABLE.
+
+READ-ONLY
+- No broker execution.
+- No automatic buy/sell order placement.
+- No P&L, paper trading, journal or trailing stop workflow.

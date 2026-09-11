@@ -1,0 +1,9 @@
+Powerhouse AI v9 — Multi-Index + NSE OI Spurts
+
+- Added live underlying selector: NIFTY / BANKNIFTY / SENSEX.
+- Upstox option chain, expiry and AI pipeline reload per selected index.
+- Added official NSE OI Spurts best-effort read-only layer.
+- Fixed v8 Heavyweights 0/100 bug: direction_score is correctly mapped from -1..+1.
+- Fixed ΔOI semantics: uses Upstox current OI vs prev_oi (cchg/pchg). Missing data is N/A, never fake 0.
+- Big Money score dynamically excludes missing dimensions and reports input coverage.
+- No order placement, execution, P&L, paper trading, targets or trailing SL.

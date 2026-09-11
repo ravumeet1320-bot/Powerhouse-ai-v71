@@ -1,0 +1,16 @@
+Powerhouse AI v16 — Auto Trender Flow
+
+Added
+- Dedicated AUTO tab with original flowing coloured trend bars.
+- Composite read-only trend score from AI Fusion, heavyweight futures Pitch, Big Money footprints, 3/5/15m alignment, VWAP and options PCR when available.
+- Strong Positive / Positive / Mixed / Negative / Strong Negative verdict.
+- Bull-vs-Bear pressure split and input coverage.
+- Animated bi-directional bars centered at neutral: red to the left, green to the right.
+- Session Flow ribbon retained on-device in localStorage with time-stamped verdict changes.
+- Component breakdown explaining why the trend bar is moving.
+- Missing inputs stay N/A and are excluded from the composite rather than converted to zero.
+
+Safety
+- Read-only analytics only. No order placement, execution, P&L, paper trading, targets or trailing stop-loss.
+- Trend score is alignment/quality visualization, not probability of profit.
+- This is an original Powerhouse AI implementation and does not reproduce any third-party proprietary formula or interface.

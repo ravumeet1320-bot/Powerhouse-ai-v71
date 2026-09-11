@@ -1,0 +1,4 @@
+v19.2 hotfix
+- Fixed X-RAY sector heatmap ReferenceError: d is not defined.
+- Sector heatmap now reads from state.data.sector_heatmap safely.
+- Bumped UI/service worker version.

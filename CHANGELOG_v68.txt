@@ -1,0 +1,11 @@
+POWERHOUSE AI V68 — VERIFIED GLOBAL FEED ENGINE
+
+- Added authenticated Upstox Global Instruments loader and quote cache.
+- Added GIFT NIFTY, Dow Jones, S&P 500, US Tech 100, India VIX, USD/INR, Brent, WTI, Gold and DXY when present in Upstox Global Instruments.
+- Preserves Upstox provider latency metadata and local cache age.
+- Added official Federal Reserve FRED daily US 2Y/5Y/10Y/30Y Treasury yields.
+- Added 10Y–2Y curve spread in basis points.
+- Retained genuine external adapters for Dow/S&P/Nasdaq futures; cash indices are never mislabeled as futures.
+- UI now shows source state, truth label, latency and age.
+- No Moneycontrol or TradingView scraping.
+- Missing data stays UNAVAILABLE; no fabricated market values.

@@ -1,0 +1,15 @@
+POWERHOUSE AI V71 DEPLOY CHECKLIST
+
+1. Upload/extract project files at repository root.
+2. Keep static/ directory with index.html, sw.js, manifest.webmanifest and icons.
+3. Render build command: pip install -r requirements.txt
+4. Render start command: uvicorn app:app --host 0.0.0.0 --port $PORT
+5. Preserve existing Upstox credentials/environment variables.
+6. Add/keep V71 environment variables from .env.example.
+7. For durable audit/history on Render, set POWERHOUSE_V71_DB_PATH to a persistent mounted disk path.
+8. Verify after deployment:
+   GET /api/health -> HTTP 200 and version 71.0
+   GET /api/v71/status -> version 71.0
+   GET /api/v71/universe -> expected/observed coverage visible
+   Open / -> main header and default COMMAND page display V71
+9. Do not call a deploy successful until health + UI version are both verified.

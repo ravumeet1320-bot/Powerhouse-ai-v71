@@ -1,0 +1,9 @@
+POWERHOUSE AI V69 — Market Depth + Bulk/Block Smart Money OS
+
+- Requests Upstox full_d30 depth mode when enabled/supported; safely uses available levels.
+- Normalizes up to 30 bid/ask levels.
+- Adds bid/ask imbalance, spread bps, largest walls, pressure score and depth quality.
+- Preserves truth policy: depth is anonymous order-book evidence, never FII/DII identity.
+- Upgrades existing verified deals ledger into bulk/block intelligence with impact scoring.
+- New endpoints: /api/v69/status, /api/v69/depth, /api/v69/bulk-block.
+- Read-only analytics only; no order execution.

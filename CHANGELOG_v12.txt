@@ -1,0 +1,16 @@
+POWERHOUSE AI v12 — ULTIMATE MARKET INTELLIGENCE
+
+New in v12:
+- Full SENSEX heavyweight Index Brain with BSE factsheet-labelled weights.
+- Opening Range Brain (first 15 minutes from 5m candles), day high/low/open context.
+- Expiry Brain with T-0/T-1/near-expiry mode and max-pain pin-risk context.
+- Greeks Pressure dashboard: gamma/theta/delta-balance with coverage semantics.
+- Premium Divergence engine using ATM-area CE/PE premium response vs 5m index trend.
+- Sector Rotation board from live tracked heavyweight sectors.
+- Decision Stack hard gates: data quality, trap, flow, MTF, premium confirmation, expiry risk.
+- Existing v11 Big Money, OI Spurts, wall migration, strike battle, whale radar, MTF and command center retained.
+
+Safety/Scope:
+- Read-only analytics only. No order placement, execution, P&L, targets, trailing SL, paper trading or journal.
+- Confidence/confluence are quality/alignment metrics, not probability of profit.
+- Missing data remains N/A and is not silently converted into bearish/bullish evidence.

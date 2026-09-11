@@ -1,0 +1,22 @@
+POWERHOUSE AI V66 — Historical Intelligence, Replay & Self-Learning OS
+
+ADDED
+- Normalized SQLite time-series for per-symbol price, volume, RVOL, futures OI, PCR, max pain, ATM, IV, VWAP, spread, depth imbalance, breadth and sector score.
+- Strike-level option snapshots for OI/Delta-OI/volume/LTP/IV/Greeks/bid/ask.
+- 1m/3m/5m/15m/30m/60m metric deltas.
+- Sector leadership rotation and acceleration/decay history.
+- Option PCR/OI wall/IV migration timeline.
+- Point-in-time replay endpoint; replay never invents unavailable historical observations.
+- Detection store, subsequent-move outcome labels and missed-move audit.
+- Expiry-day risk context including gamma/theta summaries when source data exists.
+- Provenance/readiness telemetry and retention controls.
+- Shadow/A-B experiment schema foundation.
+
+TRUTH / LIMITATIONS
+- SQLite is durable only if deployment storage itself persists. Use a persistent disk or hosted DB for production history.
+- Historical fidelity begins when snapshots are stored unless an explicit historical backfill source is configured.
+- Outcome labels are diagnostics, not profit probability.
+- No FII/DII identity is inferred from anonymous market flow.
+
+- Replay chart workspace API/UI with price + VWAP and synchronized evidence panels.
+- Live opportunity-radar best-now candidates are automatically persisted for later outcome diagnostics.

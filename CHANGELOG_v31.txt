@@ -1,0 +1,22 @@
+POWERHOUSE AI v31 — FULL MARKET OPPORTUNITY + ALERT INTELLIGENCE
+
+Added
+- V31 Full Market Trade Radar tab.
+- Live bullish + bearish opportunity ranking across the connected broad NSE stock universe plus active index.
+- BEST NOW board and WATCH → BUILDING → READY opportunity lifecycle.
+- Setup quality grades A+ / A / B+ / B (quality/confluence only; not probability of profit).
+- Analytical entry-trigger, invalidation/SL, T1 and T2 scenario levels.
+- On-demand NSE stock option-chain resolver through the connected Upstox market-data session.
+- ATM/near-ATM stock-option lookup with LTP / OI / volume / bid / ask data where available.
+- V31 Alert Cockpit with A/A+ / A+ / READY / OFF filters.
+- Browser/PWA notifications, vibration where supported, duplicate suppression and 15-minute alert cooldown.
+- Local alert history persisted on the device.
+- Live breadth and coverage counters.
+- Data-quality guardrails: missing data remains N/A; no synthetic quotes/options.
+
+Safety / product boundary
+- Read-only analytics only.
+- No order placement or broker-side execution.
+- No P&L or paper-trading ledger.
+- Setup quality is not probability of profit.
+- The app does not claim that every market opportunity can be detected; coverage depends on the connected market-data universe, feed health and API limits.

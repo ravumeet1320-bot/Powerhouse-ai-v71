@@ -1,0 +1,3 @@
+Powerhouse AI v40 — Market Intelligence OS
+
+V40 adds pastel-rainbow Derivatives Intelligence, slow animated OI/OI-change/volume/premium bars, ATM and walls, strike activity radar, session-only ATM straddle chart, explainable derivatives interpretation, and participant-source safeguards. Existing V36 decision funnel, opportunity ranking and session alerts are retained. Read-only; no execution or P&L.

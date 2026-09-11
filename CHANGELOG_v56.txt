@@ -1,0 +1,19 @@
+POWERHOUSE AI V56 — Advanced Screener & OI Intelligence
+
+Implemented in code:
+- Advanced read-only stock screener over verified snapshot fields.
+- Preset scans: Breakout Now, Breakout Building, Volume Surge, High RVOL, Near 52W High, depth pressure, momentum up/down.
+- Custom screener endpoint: /api/v56/screener with safe supported fields/operators.
+- OI Spurts classifier: Long Buildup, Short Buildup, Short Covering, Long Unwinding when verified futures OI change exists.
+- Option-chain intelligence: OI PCR, volume PCR, max CE/PE OI walls, official max pain/PCR passthrough, strike table context.
+- Trade Finder funnel and scanner-health coverage.
+- V56 dashboard panel with one-click scan presets, OI cards and option summary.
+- Truth policy: unavailable data stays unavailable; setup score is evidence quality, not win probability; no order execution.
+
+Premium UI refresh:
+- New V56 Opportunity Command Center as the default landing page.
+- Premium glass/terminal visual system with responsive mobile layout.
+- Dedicated live scanner funnel, preset ribbon, ranked candidate grid, OI Spurts radar, option-chain activity visual, breakout lifecycle engine and trust strip.
+- Corrected app header/version branding from legacy V54 to V56.
+- V56 made the default navigation destination; older V54/V53/V50 modules are preserved.
+- Motion is subtle and respects prefers-reduced-motion.

@@ -1,0 +1,13 @@
+Powerhouse AI v20.1 — Mobile Chart Readability + Chart Pattern Brain
+
+- Default chart density reduced to 36 candles; 24/36/60 selector added.
+- Taller mobile candlestick chart with wider bodies and brighter wicks.
+- Readable right-side price scale with label boxes.
+- Current price line and last-price badge added.
+- VWAP label upgraded for mobile visibility.
+- Latest candle OHLC readout added.
+- Time labels added along x-axis.
+- Latest candlestick pattern label displayed directly on chart.
+- Chart Pattern Brain added: Double Top/Bottom, Symmetrical/Ascending/Descending Triangle, Rising/Falling Channel (rule-based swing geometry).
+- Key neckline/formation level drawn on the chart when available.
+- Read-only analytics only; pattern geometry is not a profit guarantee.

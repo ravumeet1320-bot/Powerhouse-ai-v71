@@ -1,0 +1,7 @@
+Powerhouse AI v19
+- Sector + stock heatmap with live intensity.
+- % move / index weight / flow score heat modes.
+- Advanced AutoTrender adds RSI, MACD, Supertrend lanes.
+- Turning Point Radar for acceleration and trend flips.
+- Existing true flowing animated bars retained.
+- Missing data stays N/A. Read-only analytics only.

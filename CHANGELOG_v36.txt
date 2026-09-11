@@ -1,0 +1,18 @@
+Powerhouse AI v36 — Market Intelligence OS
+
+Major additions:
+- Decision Funnel: observed → live → interesting → A/A+ → independent setups.
+- Correlation-aware opportunity shortlist: reduces same-sector/same-direction duplicates.
+- Market State Engine: trend/range/rotation/expansion classification from connected live breadth.
+- Market Bias + master REVIEW SETUP / WAIT decision gate.
+- Setup maturity and chase-risk labels.
+- Conflict severity and bias-flip conditions on opportunity cards.
+- Data trust shown with each setup.
+- Best Independent Setups + expanded opportunity queue.
+- Existing V31.3 market-hours, session-only Notification Center retained.
+- A/A+ alert filtering and duplicate cooldown retained; TRIGGER READY supported.
+- Pastel aurora UI, larger typography and slow readable moving bands retained.
+- Read-only architecture retained: no broker execution, no P&L, no paper trading.
+
+Important coverage note:
+V36 ranks the currently connected live universe. It does not claim complete NSE/F&O coverage or guaranteed opportunity detection. Stock option chain remains on-demand for selected symbols.

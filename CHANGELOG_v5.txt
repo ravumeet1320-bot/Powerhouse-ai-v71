@@ -1,0 +1,30 @@
+NIFTY POWERHOUSE AI INDEX BRAIN v5 — CHANGELOG
+================================================
+
+Added
+- Weightage-aware NIFTY 50 heavyweight engine
+- Separate BANK NIFTY heavyweight engine
+- HDFC / ICICI / Reliance / SBI / Axis / Kotak / major constituents live tracking
+- 8th AI expert: Index Brain
+- Weighted bull-vs-bear breadth
+- Leader / drag detection
+- First-order contribution % and approximate index-point contribution
+- NIFTY sector pulse
+- Index-vs-heavyweight divergence shield
+- Fragility risk
+- Top-3 heavyweight consensus
+- /api/index/weights read-only metadata endpoint
+- Full INDEX mobile tab
+- Index confirmation integrated into final CE / PE / WAIT fusion
+- Index divergence integrated into false-signal risk and AI watch conditions
+
+Still disabled
+- Order placement
+- Automated execution
+- Account P&L
+- Paper trading
+
+## v5.1 Multi-device
+- Per-device isolated Upstox session using a random local device ID.
+- Android and iPhone no longer overwrite each other's backend token/session state.
+- Read-only analytics only; no order execution added.

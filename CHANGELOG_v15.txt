@@ -1,0 +1,8 @@
+Powerhouse AI v15 — Chart + Candlestick Intelligence
+- Live read-only intraday candlestick chart for selected NIFTY/BANKNIFTY/SENSEX underlying.
+- 1m/3m/5m/15m/30m timeframes.
+- VWAP overlay.
+- Candle Pattern Brain: Doji, Hammer/Hanging Man, Inverted Hammer/Shooting Star, Bullish/Bearish Engulfing, Inside/Outside Bar, Morning/Evening Star.
+- Market structure: HH/HL, LH/LL, range/transition.
+- Pattern strength is geometry/confluence quality, never profit probability.
+- No execution, orders, P&L, targets, or paper trading.

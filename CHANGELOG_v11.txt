@@ -1,0 +1,18 @@
+POWERHOUSE AI v11 — PRO DESK INTELLIGENCE
+
+New in v11
+- New PRO DESK screen combining AI, Big Money and market-structure context.
+- Multi-timeframe 3m / 5m / 15m directional alignment.
+- Market Geometry: VWAP position, PCR state, IV regime, max-pain distance and call/put-wall location.
+- Unified confluence score based on agreement + data quality, explicitly not profit probability.
+- Automatic risk flags for low data quality, high trap risk, AI/flow conflict and short-vs-long horizon divergence.
+- What To Watch Next board to show conditions the model is waiting for without execution instructions.
+- NIFTY / BANKNIFTY / SENSEX multi-index selector retained.
+- Command Center, OI flow classification, NSE OI Spurts, whale radar, wall shift tracker and flow timeline retained from v10.
+- Missing data continues to display as unavailable rather than fabricated zero.
+- PWA cache/manifest bumped to v11 and desktop orientation unlocked.
+
+Safety / scope
+- Read-only analytics only.
+- No order placement, execution, P&L, target, trailing stop, journal or paper-trading engine.
+- Confluence/confidence are quality metrics, not probabilities of profit.

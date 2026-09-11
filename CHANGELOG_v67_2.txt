@@ -1,0 +1,9 @@
+POWERHOUSE AI V67.2 — VERIFIED FEEDS ONLY CLEAN UI
+
+- Visible navigation remains limited to working/obtainable functions: NOW, INDEX, SMART MONEY, CHART, ALERTS, CONNECT.
+- Legacy/unavailable-feed tabs remain removed from visible navigation.
+- Removed NSE OI Spurts UI block because automated public access is not reliably available.
+- Renamed misleading “FII / DII Footstep Proxy” to “Anonymous Market Pressure”.
+- Updated header version to V67.2 and “VERIFIED FEEDS ONLY”.
+- Preserved read-only behavior and truth policy.
+- Upstox-backed INDEX/SMART MONEY/CHART remain because their feed is obtainable after authentication.

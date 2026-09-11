@@ -1,0 +1,21 @@
+POWERHOUSE AI V67 — ADVANCED CHART PATTERN & SMART MONEY INTELLIGENCE OS
+
+Added:
+- Multi-symbol chart endpoint for NIFTY/BANKNIFTY/SENSEX and dynamically discovered NSE equity F&O symbols.
+- Full F&O chart symbol discovery from the official Upstox NSE BOD universe.
+- F&O chart scanner endpoint (bounded scan to reduce rate-limit pressure).
+- Pre-move pattern lifecycle: developing/mature/trigger-near compression, triangles, resistance/support fatigue.
+- Forming candlestick candidates before candle close, explicitly labelled UNCONFIRMED.
+- Auto Fibonacci retracement 23.6/38.2/50/61.8/78.6 and extensions 127.2/161.8/200/261.8.
+- Fib confluence with available VWAP/POC references.
+- AB=CD harmonic candidate scaffold.
+- Advanced Smart Money evidence stack with accumulation/distribution lifecycle and counter-evidence.
+- Chart + Smart Money fusion and pre-move radar.
+- Chart symbol selector and F&O scanner UI.
+
+Truth/safety:
+- Read-only analytics; no order execution.
+- Pattern formation quality is not win probability.
+- Forming candles/patterns are not confirmed until their rule-defined completion.
+- Anonymous price/volume/OI/depth never identifies FII/DII/PRO.
+- Unknown/unavailable symbols are rejected; no instrument key is guessed.

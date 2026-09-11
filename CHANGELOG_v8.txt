@@ -1,0 +1,12 @@
+NIFTY Powerhouse AI v8
+- Multi-device isolation: Android, iPhone, iPad and laptop/browser sessions
+- Responsive desktop/laptop layout
+- Big Money Footprints engine
+- FII/DII Footstep Proxy (explicitly an inference, not participant identification)
+- Whale Strike Radar
+- Fresh OI / volume / heavyweight pressure scoring
+- Institutional Trap Shield: absorption + divergence
+- Call/Put wall intelligence
+- Existing v5 Index Brain, 8-agent AI, strike ranking, forecasts, risk shield retained
+- Read-only: no order placement, execution or P/L
+- Render blueprint fixed to free plan

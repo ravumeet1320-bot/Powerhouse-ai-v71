@@ -1,0 +1,13 @@
+Powerhouse AI v31.3 — Session Alert Center
+
+- Added dedicated ALERTS tab / Notification Center.
+- Alerts are active only during Indian cash-market hours (Mon-Fri 09:15-15:30 Asia/Kolkata).
+- Session alert history is memory-only; no alert history is written to localStorage.
+- Alert history auto-clears after market close and is empty on next app launch.
+- Both V31 opportunity alerts and Index AI signal alerts are mirrored into the Notification Center.
+- Existing alert-mode preference may remain saved as a user setting; alert content itself is not persisted.
+- In-app toast visibility increased from 2.2 seconds to 12 seconds for easier reading.
+- Existing 15-minute duplicate suppression remains session-only.
+- Read-only analytics; no order placement, P&L, or execution.
+
+Note: market-holiday detection is not included in this patch; the center uses weekday + IST market clock.

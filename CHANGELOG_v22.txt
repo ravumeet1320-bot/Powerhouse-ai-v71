@@ -1,0 +1,17 @@
+Powerhouse AI v22 — Advanced Pattern Intelligence + AutoTrender V2
+
+Added:
+- Advanced Chart Pattern Brain: H&S / inverse H&S, double & triple top/bottom, triangles, wedges, rectangle/range, channels, flags, pennants, cup & handle heuristics.
+- Pattern completion %, structure strength, breakout/neckline and invalidation fields.
+- Primary pattern decision map and direct chart overlays.
+- Expanded candlestick brain: dragonfly/gravestone doji, harami, piercing line, dark cloud cover, three white soldiers, three black crows.
+- AutoTrender V2 labels: neutral, mild, directional, strong.
+- Explainable Bias: strongest drivers, counter-signals and flip conditions.
+- Cross-index lead/lag context from weighted index-brain direction scores.
+- PCR velocity and acceleration from live local session history.
+- Existing V20 calibration, OI flow, premium response, wall migration, score history and no-trade gate retained.
+
+Safety:
+- Read-only analytics. No order placement or execution.
+- Pattern completion/strength and confluence are not probabilities of profit.
+- Missing data remains N/A and is excluded from scoring.

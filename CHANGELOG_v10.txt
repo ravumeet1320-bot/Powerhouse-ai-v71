@@ -1,0 +1,20 @@
+POWERHOUSE AI v10 — COMMAND CENTER + FLOW INTELLIGENCE
+
+Added
+- Market Command Center: AI signal + Big Money + data quality + trap risk on one screen
+- Cross-index matrix for NIFTY / BANKNIFTY / SENSEX (N/A when weighted input is unavailable)
+- Data Integrity score + A/B/C/D/INSUFFICIENT grade
+- Price + ΔOI classification: Long Buildup / Short Buildup / Short Covering / Long Unwinding
+- Strike Battle Map around ATM
+- Session-only Big Money flow timeline
+- Session-only Call/Put wall-shift tracker
+- Premium response diagnostics
+- Expanded Whale Radar with build-up labels
+- Option chain now surfaces ΔOI rather than confusing it with Greek delta
+- Fixed duplicate MONEY navigation item
+
+Safety / semantics
+- Read-only analytics only; no orders, execution, P&L, paper trading or journal
+- Missing market inputs remain N/A and are excluded from scoring
+- Anonymous option activity is never labelled as a specific FII/DII participant
+- NSE OI Spurts remains a separate official public-data layer

@@ -1,0 +1,18 @@
+POWERHOUSE AI V63 — Market Command Center + Sector Leadership OS
+
+Added:
+- Today's Strongest Sector engine using current sector breadth, equal-weight change and available RVOL evidence.
+- Top gainer inside the strongest sector (e.g. if Metals leads and TATASTEEL is its top % gainer, that is shown dynamically; no hard-coded daily result).
+- Weakest sector + weakest constituent.
+- Sector leadership persistence from stored time-series.
+- Top gainers, top losers, highest-volume and highest-RVOL market movers.
+- TradingView-style market overview information architecture (not copied UI/data).
+- Legitimate-feed adapters for GIFT NIFTY, Dow Futures, S&P 500 Futures, Nasdaq Futures, India VIX, Nikkei 225, Hang Seng, DAX and FTSE 100.
+- Global cue evidence state: risk-on / risk-off / mixed.
+- Dedicated V63 Markets UI and APIs.
+
+Truth policy:
+- No TradingView scraping.
+- External values remain UNAVAILABLE until a legitimate source is configured or verified data is ingested.
+- Sector score is evidence, not win probability.
+- Read-only analytics. No broker order execution.

@@ -1,0 +1,16 @@
+POWERHOUSE AI V61 — Persistent Market Memory, Replay & Alert OS
+
+ACTUAL ADDITIONS
+- SQLite persistent scanner memory with bounded retention.
+- State-change replay for candidate lifecycle/action transitions.
+- In-app read-only alert center for TRIGGER READY / ATTACKING / CONFIRMED analytics states.
+- Catalyst guard with verified/unverified separation; catalyst alone never creates a trade signal.
+- Daily self-audit summary (observations, symbols, stages, alerts, detection benchmark).
+- New V61 UI page and API endpoints: /api/v61/status, /api/v61/replay, /api/v61/alerts, /api/v61/catalysts, /api/v61/daily-audit.
+- Existing V50→V60.3 modules preserved.
+
+TRUTH / LIMITS
+- SQLite persists only if the deployment filesystem itself is persistent. Ephemeral Render filesystem can reset on redeploy/restart; production should mount persistent disk or external DB.
+- External push/WhatsApp/Telegram/email delivery is not connected.
+- Licensed real-time news feed is not connected; catalysts can be loaded through API and remain explicitly verified/unverified.
+- No broker execution. No guaranteed trade/profit claims.

@@ -1,0 +1,11 @@
+POWERHOUSE AI V67.1 — CLEAN WORKING UI / BUG FIX
+
+- Removed legacy/non-primary navigation tabs from the visible bottom navigation.
+- Visible tabs now: NOW, INDEX, SMART MONEY, CHART, ALERTS, CONNECT.
+- Older engines/pages remain in code for compatibility but are no longer exposed as dead/clutter tabs.
+- Fixed selected chart symbol state so ABCAPITAL/BANKNIFTY/etc no longer leave stale NIFTY label/data when a request fails.
+- Chart now clears stale candles and shows LOGIN REQUIRED / UNAVAILABLE for the selected symbol.
+- API helper carries HTTP status.
+- 401 on live snapshot stops polling and switches UI to OFFLINE instead of flooding Render with repeated unauthorized calls.
+- Poll interval relaxed from 2.5s to 5s.
+- Read-only policy preserved.

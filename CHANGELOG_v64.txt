@@ -1,0 +1,9 @@
+POWERHOUSE AI V64 — Sector Opportunity + Institutional Footprints OS
+
+- Separates strongest-sector top gainer from best current opportunity / about-to-move / breakout-ready / high-RVOL / OI-buildup / chase-risk candidates.
+- Adds verified FII/FPI/DII daily cash activity store.
+- Adds participant-wise derivatives positioning for FII/DII/PRO/CLIENT by segment.
+- Adds reporting-period holding changes for FPI/FII/DII/MF/insurance/promoter categories.
+- Adds verified bulk/block deal footprints and stock-level institutional footprint ranking.
+- Strict truth policy: anonymous price/volume/OI/order-book evidence never identifies FII/DII/PRO.
+- New V64 FLOWS UI and seven V64 API routes.

@@ -1,0 +1,25 @@
+POWERHOUSE AI V62 — Consolidated Market Intelligence & Global Futures OS
+
+Implemented:
+- Persistent normalized market time-series store.
+- CPR, classic pivots, Camarilla levels.
+- Gap/opening-drive context.
+- Volume Profile POC/VAH/VAL/HVN/LVN when candle+volume data exists.
+- Anchored VWAP from session/swing anchors when candles exist.
+- Compression/NR7 detector.
+- Option OI/volume PCR, OI walls and IV-skew context.
+- PCR/max-pain migration using stored time-series history.
+- Depth persistence / imbalance history (evidence only).
+- Breadth and sector-rotation snapshot.
+- Symbol personality baselines that strengthen with observations.
+- GIFT NIFTY external-feed adapter + cache + verified ingest endpoint.
+- Dow Futures external-feed adapter + cache + verified ingest endpoint.
+- Global futures alignment state.
+- V62 dashboard + data-readiness truth matrix.
+
+Truth constraints:
+- Read-only analytics; no broker execution.
+- External futures values are NEVER fabricated. Without a legitimate configured feed or verified ingest they remain UNAVAILABLE.
+- No FII/DII identity inference from anonymous market depth.
+- No spoofing/manipulation claims from depth patterns.
+- Scores are not win probability or guaranteed profit.

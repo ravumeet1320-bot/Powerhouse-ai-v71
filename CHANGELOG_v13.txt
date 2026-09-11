@@ -1,0 +1,16 @@
+Powerhouse AI v13 — Ultimate Intelligence Upgrade
+
+Added:
+- Market Pulse Brain: day-range position, move from open, opening-range expansion
+- Momentum Acceleration / impulse intelligence across 3m, 5m, 15m
+- Adaptive v13 market regime labels
+- Derivative Pressure Map: CE/PE volume share, OI concentration, ATM IV skew when available
+- Input Coverage Brain: Greeks, premium-change, previous-OI and index-brain coverage
+- Conflict Matrix across AI, Big Money, MTF, VWAP, Opening Range and Sectors
+- New safeguards for low input coverage, concentrated OI and elevated range expansion
+- UI hotfix from v12.1 retained; missing elements are guarded
+
+Safety / scope:
+- Analytics only. No order placement, execution, P&L, targets or paper trading.
+- Missing data remains N/A and is excluded where appropriate.
+- Confluence/agreement scores are not probability of profit.

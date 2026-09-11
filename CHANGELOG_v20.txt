@@ -1,0 +1,18 @@
+Powerhouse AI v20 — Flow Intelligence
+
+Added
+- Calibrated AutoTrender scoring: bar magnitude now reflects measured distance/strength instead of label-only extremes.
+- OI Flow lane using visible-chain CE/PE Change in OI.
+- Sector Breadth lane using live broad-sector universe when available.
+- Trend Acceleration and persistence engine.
+- Live AutoTrender score-history chart stored locally on the device.
+- Strike Shift Radar for Call/Put OI wall migration.
+- ATM Premium Response engine comparing index direction with CE/PE premium response.
+- No-Trade / Wait Detector based on coverage, data quality, directional conflict and calibrated trend strength.
+- Missing inputs remain N/A and are excluded rather than treated as zero.
+
+Safety
+- Read-only analytics only.
+- No order placement, execution, P&L, paper trading, targets or trailing stops.
+- Confluence/strength scores are not probability of profit.
+- Anonymous option activity is not attributed to a specific FII/DII.

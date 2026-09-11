@@ -1,0 +1,24 @@
+POWERHOUSE AI V65 — Institutional Data & Money Flow Foundation
+
+Implemented
+- Server-side source trust registry; caller-supplied verified=true cannot create verified institutional identity.
+- Deduplicated institutional activity, holdings, participant OI, deals, promoter/pledge and insider stores.
+- Configurable scheduled CSV/JSON collectors with run telemetry and content hashes.
+- Ownership history: new entry, complete exit, accumulation/distribution streaks and acceleration.
+- Institution/scheme/parent normalization and institution search.
+- Participant OI day-over-day shifts for FII/DII/PRO/CLIENT when verified data is loaded.
+- Promoter holding and pledge-change intelligence.
+- Bulk/block deal timeline and signed deal value.
+- Stock institutional consensus / conviction score (not win probability).
+- Sector institutional money map and institutional breadth.
+- Institutional screener, alerts, source drill-down, per-stock footprint timeline.
+- Morning brief, EOD flow report, quarterly ownership report.
+- Dataset readiness/completeness and source-health dashboard.
+- New V65 MONEY MAP UI page.
+
+Truth / external dependencies
+- No anonymous volume, OI or depth is labelled FII/DII/PRO.
+- Holding disclosures are reporting-period observations, not intraday institutional flow.
+- Automatic official collectors require permitted source URLs/files configured in POWERHOUSE_INSTITUTIONAL_COLLECTORS_JSON.
+- Licensed realtime news, hosted permanent DB and external WhatsApp/Telegram/email delivery are not connected by default.
+- No broker execution or guaranteed outcome claims.

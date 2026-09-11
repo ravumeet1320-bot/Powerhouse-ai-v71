@@ -1,0 +1,21 @@
+POWERHOUSE AI V60 — Production Intelligence & Self-Audit OS
+
+ACTUAL IMPLEMENTATION
+- V60 production intelligence engine layered on V58 radar.
+- Candidate lifecycle memory and evidence timeline.
+- Per-metric freshness states: FRESH / STALE / EXPIRED / UNAVAILABLE.
+- Signal half-life and aging/expiry.
+- Adaptive decision firewall with liquidity, conflict, move-maturity and data-quality rejection.
+- Consensus matrix across price, relative strength, velocity, OI velocity, RVOL and depth where verified.
+- Read-only final action router limited to BUY / SELL / BUY CE / BUY PE / WAIT.
+- Rule attribution: supporting and blocking rules.
+- Detection timing benchmark; explicitly not win rate/profit probability.
+- Production readiness score driven by verified price/RVOL/OI/structure coverage.
+- Missed-move black-box categories and diagnostic POST hook /api/v60/outcome for verified evaluator/session-replay outcomes.
+- /api/v60/status health/readiness endpoint.
+- V60 production command center UI and PWA branding/cache update.
+- No broker execution and no auto orders.
+
+DATA TRUTH
+- Full-universe, true same-time RVOL, historical structure and futures-OI readiness are reported from available data; missing inputs are not fabricated.
+- 10/10 is an engineering/readiness target, never a guaranteed profit or win-rate claim.

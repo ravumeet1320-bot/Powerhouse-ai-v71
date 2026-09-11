@@ -1,0 +1,13 @@
+POWERHOUSE AI V58 — actual implementation
+- Market anomaly / micro-burst radar
+- Price velocity and acceleration with persistent in-process state
+- Volume acceleration and OI velocity when verified inputs exist
+- Multi-level confluence map (PDH/PDL/day/52W/VWAP/ORB/20D/50D/week/month when supplied)
+- Entry quality / chase guard and move maturity
+- Conflict matrix and counter-evidence
+- Scenario tree (bullish above / bearish below / wait between)
+- About To Move, Best Now, Second Chance and Avoid command-center queues
+- Leader/follower relative-strength radar
+- Per-metric data quality and scanner coverage dashboard
+- Scanner reliability/degraded state
+- Read-only; no broker execution; no fabricated missing data; scores are not win probability

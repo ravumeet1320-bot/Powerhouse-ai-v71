@@ -1,0 +1,22 @@
+POWERHOUSE AI V53 — SUPREME DECISION & SMART MONEY OS
+
+Cumulative upgrade over V50. No order execution, P&L, paper trading or journal features added.
+
+Implemented:
+- One Stock → One Thesis → One Best Action decision layer (BUY/SELL/BUY CE/BUY PE/WAIT)
+- Adaptive Minimum Opportunity Filter with reward/risk and price-adaptive room gate
+- Volume Breakout Hunter state machine with truthful N/A when RVOL baseline is unavailable
+- 52W Breakout Hunter state machine; refuses to fabricate missing 52-week levels
+- Market-depth imbalance semantics using displayed liquidity only
+- Exact option contract selector with strike, expiry, bid/ask, spread, OI, volume, IV/Greeks when available
+- Red-Team/freshness suppression and strict missing-data semantics
+- De-correlated Best Now top 3
+- Big Money proxy safety and explicit FII/DII attribution policy
+- News/FII-DII modules report UNAVAILABLE until legitimate providers are connected
+- Missed Move Autopsy telemetry schema
+- Scanner Health with real counts only
+- V53 UI page and V53 branding; legacy V50/V40 modules retained
+- Session alert source branding changed to V53 RADAR
+- Existing Upstox sector stream now preserves available volume and top-of-book fields
+
+Validation: Python compile, FastAPI import, JavaScript syntax, legacy AI self-test, V53 engine tests, ZIP integrity.

@@ -1,0 +1,31 @@
+NIFTY POWERHOUSE AI INDEX BRAIN v5
+==================================
+Android + iPhone • Upstox • read-only AI signal scanner
+
+NEW IN v5
+---------
+• Weightage-aware NIFTY heavyweight analysis
+• HDFC / ICICI / Reliance / SBI / Axis / Kotak etc.
+• Separate BANK NIFTY Brain
+• Leader + Drag detection
+• Approx weighted index contribution points
+• NIFTY sector pulse
+• Index-vs-heavyweight Divergence Shield
+• Index Brain is now the 8th AI expert inside the final signal
+
+HOW TO USE
+----------
+1) Start the backend on a computer/cloud server.
+2) Open the HTTPS URL on Android/iPhone.
+3) Connect your own Upstox token inside your private app.
+4) Start with STRICT or BALANCED mode.
+5) Open INDEX to see heavyweight confirmation before trusting a signal.
+6) Add to Home Screen for app-like use.
+
+Main output:
+BUY CE / BUY PE / WAIT + exact ranked strike + AI grade + heavyweight confirmation + divergence risk + multi-horizon map.
+
+NO automated order execution.
+NO account P&L.
+NO paper trading.
+Never share your Upstox token or API secret in chat.

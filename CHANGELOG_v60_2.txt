@@ -1,0 +1,13 @@
+POWERHOUSE AI V60.2 — Daily Plan & Market Intelligence OS
+
+ACTUAL CHANGES
+- Added daily_plan_engine.py.
+- Added Daily NIFTY Plan page and working DAILY PLAN navigation button.
+- Added scenario engine: bull above / bear below / no-trade zone.
+- Added gap context, VWAP/ORB/session structure, heavyweight index confirmation.
+- Added option-chain call/put walls, delta-OI walls, PCR, max pain and strike battle map.
+- Added next-session checklist and risk flags.
+- Added /api/v60/daily-plan read-only endpoint.
+- Preserved V50-V60, V55 Breakout, Volume Intelligence and legacy modules.
+- Channel approach integration limited to publicly observable repeated NIFTY today/tomorrow planning format; unseen proprietary rules are not invented.
+- No broker execution, automatic orders, fake profitability or guaranteed probability.

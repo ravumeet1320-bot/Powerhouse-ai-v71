@@ -1,0 +1,17 @@
+Powerhouse AI v17 — Market X-Ray
+
+Added:
+- Dedicated X-RAY tab.
+- RSI(14), MACD, EMA 9/20/50 stack, Bollinger Bands, ATR(14), Supertrend.
+- Momentum agreement score (alignment quality only, not profit probability).
+- Strike-wise CE/PE OI heatmap using visible option-chain OI.
+- Liquidity sweep plus simple breakout/retest detector from recent candles.
+- Volume Profile proxy (POC/VAH/VAL) only when real candle volume exists; otherwise N/A.
+- Sector heatmap from tracked index sector data.
+- Heavyweight scanner: strongest, weakest, advance/decline breadth, PCR context.
+- Combined X-Ray verdict from available momentum, weighted-index, Big Money and option PCR layers.
+
+Safety / data integrity:
+- Read-only analytics. No execution, order placement, P&L, paper trading or journal.
+- Missing market inputs stay N/A and are excluded from scoring.
+- Confluence and strength scores measure alignment, not probability of profit.

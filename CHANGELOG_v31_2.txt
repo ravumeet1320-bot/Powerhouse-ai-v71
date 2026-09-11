@@ -1,0 +1,9 @@
+Powerhouse AI v31.2 — Pastel Aurora Live UI
+
+- Pastel rainbow aurora palette with restrained live ambient motion.
+- Glass-style cards with subtle multicolor edge glow.
+- Improved contrast and larger mobile typography retained from v31.1.
+- Live status pulse and slow scan-line treatment.
+- Refined ticker chips, meters, buttons, bottom navigation, and signal states.
+- Moving bands remain intentionally slow/readable.
+- No trading execution, P&L, or broker order changes. Analytical/read-only logic remains unchanged.

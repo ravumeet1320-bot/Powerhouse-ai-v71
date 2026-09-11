@@ -1,0 +1,7 @@
+Powerhouse AI v19 — Broad Sector Heatmap + AutoTrender
+
+- Expanded X-RAY sector heatmap from index-only tracked constituents to a broad curated NSE universe across Banking & Finance, IT, Auto, Energy, FMCG, Pharma, Metals, Realty/Construction, Consumer/Retail, Telecom/Media, Capital Goods/Defence and Cement.
+- Equity instrument keys are discovered at runtime from Upstox and subscribed through the existing read-only MarketDataStreamerV3.
+- Each heatmap tile shows live LTP and % change with red/green intensity; unavailable symbols remain N/A.
+- Existing v18 AutoTrender true flowing bars, turning-point radar, RSI/MACD/Supertrend context, OI heatmap, candlestick intelligence and safety gates are retained.
+- No order execution, P&L, targets, trailing SL or guaranteed-profit claims.

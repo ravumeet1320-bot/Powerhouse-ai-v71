@@ -1,0 +1,7 @@
+Powerhouse AI v31.1 — Slow Readable Bands + Large-Type UI
+
+- AutoTrender flow animation deliberately slowed to ~2.8–4.8 seconds depending on signal strength.
+- Flow labels changed from speed language to GENTLE / STEADY / STRONG so movement remains slow while strength stays readable.
+- Larger typography across header, chips, signal cards, metrics, AutoTrender, V31 radar, alerts and buttons.
+- Taller moving-band rails and larger band labels for mobile readability.
+- No changes to trading logic, risk gates, read-only execution policy, or data semantics.

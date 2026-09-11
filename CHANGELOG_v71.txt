@@ -1,0 +1,41 @@
+POWERHOUSE AI V71 — Intelligence Chart + Universal Opportunity Radar OS
+
+Built on V70 cumulatively. No broker execution was added.
+
+UNIVERSAL OPPORTUNITY COVERAGE
+- Added v71_engine.py universal census over every discovered F&O underlying before ranking.
+- Removed internal scan truncation from V55/V56/V57/V58/V61/V63 discovery paths where it could hide observed candidates.
+- Added 15s/30s/60s/180s velocity, acceleration, RVOL, futures OI, spread, displayed depth pressure and proximity-to-level evidence.
+- Added WATCH / BUILDING / EARLY MOVER / TRIGGER READY / HERO READY lifecycle.
+- Added explicit expected-vs-observed coverage and quote freshness guard. ZERO-MISS badge is withheld unless measured coverage/freshness gates pass.
+
+REALTIME DATA ROUTING
+- All discovered F&O equities are eligible for lightweight LTPC WebSocket census.
+- Richer full feeds are promoted for active/rich candidates.
+- full_d30 is separately capped and falls back to full when unavailable.
+- REST full-market reconciliation interval tightened to 10s by default.
+- Active F&O WebSocket ticks now update the full discovered census directly.
+- Full option-chain snapshot can be exposed without the prior ATM UI window truncation.
+
+ZERO-TO-HERO STOCK OPTIONS
+- Added stock option-chain normalizer/cache for every discovered F&O underlying.
+- Added CE/PE Hero scorer with no premium ceiling.
+- Scores premium velocity, OI/volume velocity, liquidity/spread, underlying alignment and Greeks where present.
+- Added HERO WATCH / HERO FORMING / HERO READY / HERO ACTIVE lifecycle.
+- Added hot-candidate + round-robin deep scanner so non-hot names are not permanently excluded by a fixed top-N gate.
+
+INTELLIGENCE CHART PRO
+- Added V71 chart API for any discovered chart symbol supported by Upstox history.
+- Added HH/HL, LH/LL structure, BOS, CHOCH, ATR, session VWAP, opening ranges, gap vs PDC, volume profile POC/VAH/VAL, level confluence and conditional bull/range/bear scenario levels.
+- Added V71 overlays and master trend HUD to the existing SVG chart.
+- Universal F&O Radar now replaces the old top-12 chart scanner as the discovery source.
+- No fake future candles are generated.
+
+PERSISTENCE / AUDIT
+- Added SQLite event store for universal snapshots, stage promotions and option Hero snapshots.
+- Added retrospective qualifying-move detection recall audit and missed-event list.
+- Coverage recall is explicitly separate from win-rate/profit probability.
+
+VISIBLE PRODUCT IDENTITY
+- Main header, default page, PWA manifest and service-worker cache bumped to V71.
+- New default V71 Command page shows coverage, universal radar, Zero-to-Hero deep scan and missed-move audit.

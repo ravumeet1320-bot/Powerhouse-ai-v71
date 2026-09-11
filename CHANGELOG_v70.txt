@@ -1,0 +1,34 @@
+POWERHOUSE AI V70 — Precision Expiry & Market Intelligence OS
+
+Implemented
+- Expiry Precision Hero with no premium cap; best risk-adjusted contract wins.
+- Before The Blast evidence gate: gamma wake-up, delta wake-up, volume surprise, OI surprise, premium resurrection, reachability, liquidity, depth, opposite-side confirmation.
+- One Master Thesis / conflict resolver. One-side CE/PE rule; WAIT/NO TRADE on conflict or weak data.
+- Strike Ladder ranking across all currently loaded strikes.
+- NIFTY, BANKNIFTY, NIFTY MID SELECT (MIDCPNIFTY), SENSEX support.
+- All-index Hero Radar endpoint: /api/v70/hero-radar.
+- MIDCPNIFTY dynamic instrument-key resolution using Upstox Instrument Search with safe fallback.
+- Market Regime Brain (3/5/15m, VWAP, realized-vol proxy, day location).
+- Option Chain Intelligence: PCR, CE/PE OI, delta-OI balance, OI walls, delta-OI walls, ATM straddle expected-move proxy, max pain, IV skew.
+- Volatility Brain / IV surface.
+- Pin / Pin-Escape intelligence.
+- Breadth / sector participation layer.
+- Global risk layer using verified Upstox Global Instruments when available.
+- Liquidity / spread / order-book evidence and depth-aware scoring.
+- Signal TTL, invalidation, one-trade gating.
+- What Changed snapshots, signal ledger, zero-hindsight storage.
+- Data Truth score and graceful degradation.
+- V70 mobile HERO page and exposed navigation for AUTOTREND, GLOBAL, HEATMAP, OPTIONS, SMART MONEY, CHART, ALERTS.
+- PWA cache bumped to V70 to avoid old UI being served after deploy.
+
+Truth / Safety
+- Read-only analytics. No broker execution, order placement or P&L.
+- No 100% profit guarantee is displayed; Hero score measures evidence quality, not probability of profit.
+- Missing feeds remain PARTIAL/UNAVAILABLE; no fabricated data.
+- Anonymous OI/depth is never labeled as identified FII/DII/institutional activity.
+
+Scaffolds deliberately truth-labeled until live evidence is connected
+- CAS Shock Brain activates only when CAS imbalance/IEP fields are present in the connected feed.
+- Verified event shock feed.
+- Expired-contract historical Zero-to-Hero ingestion job.
+- Champion/challenger self-calibration requires stored expiry samples before promotion.

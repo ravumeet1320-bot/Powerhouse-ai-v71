@@ -1,0 +1,25 @@
+POWERHOUSE AI V60.3 — Full-Market Data Foundation Upgrade
+
+ACTUAL BACKEND CHANGES
+- Dynamic complete NSE equity F&O universe discovery from the official Upstox NSE BOD JSON.gz instrument file.
+- Full Market Quotes V3 batch polling (up to 450 keys per request internally) for the whole F&O universe.
+- Direct trailing-year high/low, session OHLC, volume, ATP, top depth, total buy/sell quantity from verified provider quotes.
+- Nearest-expiry stock-futures mapping from the BOD file.
+- Futures current OI + previous-session OI and verified OI-change % for the stock universe.
+- Gradual historical baseline hydration via Historical Candle V3.
+- PDH/PDL, previous close, 20D/50D highs/lows, 20-day average volume.
+- True same-time-of-day cumulative RVOL for hydrated symbols using prior 5-minute sessions; no fake RVOL when baseline is missing.
+- Existing sector_heatmap analytics now use the dynamic F&O universe when available, falling back to the legacy bounded universe if discovery fails.
+- Added /api/v60/fno-foundation status endpoint.
+
+UI CHANGES
+- New working FULL F&O navigation page.
+- Live universe/live quote/RVOL/futures-OI counters.
+- Historical structure and 52W coverage panel.
+- Audit page includes Full F&O Foundation status.
+- V60.3 branding retained with premium pastel-rainbow V60.2 visual system.
+
+TRUTH / SAFETY
+- Read-only analytics only; no broker execution.
+- Historical RVOL coverage hydrates gradually to avoid abusive API load.
+- Missing metrics remain N/A and reduce coverage instead of being invented.

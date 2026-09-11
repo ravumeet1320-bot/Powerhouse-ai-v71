@@ -1,0 +1,16 @@
+Powerhouse AI v14 — Pitch + Weekly Option Intelligence
+
+Added:
+- Dedicated PITCH page
+- Heavyweight Pitch Report for NIFTY/BANKNIFTY/SENSEX
+- Live CMP and spot % change; futures % stays N/A unless a real distinct futures feed exists
+- Weekly-style option board with CE/PE Change in OI, OI %, LTP, OI in lakhs, strike ladder
+- 3/5/15 minute intraday option trend using browser-session rolling snapshots
+- PCR, Put-Call OI difference, index price vs VWAP signal
+- WARMING UP state instead of fabricated history
+- Mobile bottom navigation made horizontally scrollable for the extra PITCH tab
+
+Safety:
+- Read-only analytics only
+- No order execution, P&L, targets, trailing stop, or paper trading
+- Spot changes are not mislabeled as futures changes
