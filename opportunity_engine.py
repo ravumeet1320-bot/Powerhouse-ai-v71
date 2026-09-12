@@ -78,9 +78,20 @@ def build_opportunity_radar(market: Dict[str,Any], ai: Dict[str,Any], smart_mone
         if key in seen: continue
         seen.add(key); independent.append(x)
         if len(independent)>=5: break
-    ready=[x for x in candidates if x["quality"]>=80]
+    confirmed=[x for x in candidates if x["quality"]>=80]
+    ready=[x for x in candidates if x["quality"]>=72]
     state=_market_state(bull,bear,[safe(x.get("change_pct")) for x in rows])
     market_bias="BULLISH" if breadth_ratio>.25 else "BEARISH" if breadth_ratio<-.25 else "MIXED"
     top=independent[0] if independent else None
-    funnel={"observed":len(raw),"live":len(rows),"interesting":sum(x["quality"]>=60 for x in candidates),"high_quality":len(ready),"independent":len(independent),"best":(top or {}).get("symbol")}
-    return {"version":"36.0","generated_at":time.time(),"market_state":state,"market_bias":market_bias,"breadth_score":round(breadth_ratio*100),"funnel":funnel,"coverage":{"live_stocks":len(rows),"configured_universe":len(raw),"sectors":len(groups)},"breadth":{"bullish":bull,"bearish":bear,"neutral":max(0,len(rows)-bull-bear)},"best_now":independent[:3],"independent":independent,"queue":candidates[:16],"alert_candidates":ready[:12],"decision":{"action":"WAIT" if not top or top["quality"]<80 else "REVIEW SETUP","reason":"No A/A+ independent setup passes the current quality gate." if not top or top["quality"]<80 else f"{top['symbol']} {top['side']} is the strongest independent analytical setup.","data_safe":bool(rows)},"policy":{"execution_enabled":False,"orders_enabled":False,"pnl_enabled":False,"quality_not_profit_probability":True,"coverage_note":"Ranks the connected live universe only; it does not claim complete NSE/F&O coverage or guaranteed opportunity detection."}}
+    funnel={"observed":len(raw),"live":len(rows),"interesting":sum(x["quality"]>=60 for x in candidates),"high_quality":len(confirmed),"ready_or_early":len(ready),"independent":len(independent),"best":(top or {}).get("symbol")}
+    if not top or not rows:
+        decision={"action":"WAIT","tier":"NO DATA" if not rows else "NONE","reason":"No live connected setup is available.","data_safe":bool(rows)}
+    elif top["quality"]>=80:
+        decision={"action":"CONFIRMED CALL","tier":"A/A+","reason":f"{top['symbol']} {top['side']} is the strongest independent confirmed analytical setup.","data_safe":True}
+    elif top["quality"]>=72:
+        decision={"action":"EARLY CALL","tier":"B+/A-","reason":f"{top['symbol']} {top['side']} is the strongest early setup; confirmation is still developing.","data_safe":True}
+    elif top["quality"]>=60:
+        decision={"action":"WATCH CALL","tier":"WATCH","reason":f"{top['symbol']} {top['side']} is directional but below the early-call threshold.","data_safe":True}
+    else:
+        decision={"action":"WAIT","tier":"NONE","reason":"No independent setup has enough live quality yet.","data_safe":True}
+    return {"version":"36.1","generated_at":time.time(),"market_state":state,"market_bias":market_bias,"breadth_score":round(breadth_ratio*100),"funnel":funnel,"coverage":{"live_stocks":len(rows),"configured_universe":len(raw),"sectors":len(groups)},"breadth":{"bullish":bull,"bearish":bear,"neutral":max(0,len(rows)-bull-bear)},"best_now":independent[:3],"independent":independent,"queue":candidates[:16],"alert_candidates":ready[:12],"confirmed_candidates":confirmed[:12],"decision":decision,"policy":{"execution_enabled":False,"orders_enabled":False,"pnl_enabled":False,"quality_not_profit_probability":True,"coverage_note":"Ranks the connected live universe only; early calls are lower-confidence analytical setups, not guaranteed trades."}}

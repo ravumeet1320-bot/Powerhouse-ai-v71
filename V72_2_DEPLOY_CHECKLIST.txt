@@ -1,0 +1,104 @@
+POWERHOUSE AI V72.2 — CORRECTED CUMULATIVE DEPLOY CHECKLIST
+============================================================
+Source of truth inspected: POWERHOUSE_AI_V72_2_TIMING_EXECUTION_FULL_CUMULATIVE.zip
+Current GitHub baseline inspected: ravumeet1320-bot/Powerhouse-ai-v71 @ main (V71)
+
+IMPORTANT
+- The original 9-file V72.2 deploy patch is NOT sufficient for the current V71 GitHub baseline.
+- Do not delete/wipe the repository.
+- Do not replace older engines that are byte-identical to the cumulative build.
+- Keep UPSTOX_ACCESS_TOKEN only in Render environment variables. Never commit a real token.
+
+RUNTIME FILES THAT MUST BE REPLACED ON CURRENT GITHUB MAIN
+- app.py
+- ai_engine.py
+- opportunity_engine.py
+- upstox_service.py
+- v62_engine.py
+- v63_engine.py
+- v67_engine.py
+- static/index.html
+- static/manifest.webmanifest
+- static/sw.js
+
+RUNTIME FILES THAT MUST BE ADDED
+- v72_engine.py
+- v72_2_engine.py
+
+CONFIG/DOC FILES TO ADD OR UPDATE
+- .env.example (example only; never put the real token here)
+- README.md
+- CHANGELOG_v71_1.txt
+- CHANGELOG_v71_2.txt
+- CHANGELOG_v71_3.txt
+- CHANGELOG_v71_4.txt
+- CHANGELOG_v71_5.txt
+- CHANGELOG_v72.txt
+- CHANGELOG_v72_1.txt
+- CHANGELOG_v72_2.txt
+- CHANGELOG_v72_UI.txt
+- V72_2_DEPLOY_CHECKLIST.txt
+
+VERIFICATION TEST FILES TO ADD
+- TEST_V71_3.py
+- TEST_V71_4.py
+- TEST_V71_5.py
+- TEST_V72.py
+- TEST_V72_1.py
+- TEST_V72_2.py
+- TEST_V72_2_AUTH_STATUS.py
+
+FILES VERIFIED AGAINST CURRENT GITHUB AND NOT TOUCHED
+- requirements.txt
+- render.yaml
+- Dockerfile
+- candle_intel.py
+- daily_plan_engine.py
+- demo_data.py
+- index_brain.py
+- market_intel.py
+- nse_oi.py
+- smart_money.py
+- supreme_engine.py
+- volume_intel.py
+- v53_engine.py
+- v54_engine.py
+- v55_engine.py
+- v56_engine.py
+- v57_engine.py
+- v58_engine.py
+- v60_engine.py
+- v61_engine.py
+- v64_engine.py
+- v65_engine.py
+- v66_engine.py
+- v69_engine.py
+- v70_engine.py
+- v71_engine.py
+- static/apple-touch-icon.png
+- static/icon-192.png
+- static/icon-512.png
+
+AUTH / DATA TRUTH VERIFICATION
+- Server UPSTOX_ACCESS_TOKEN is authoritative when configured.
+- Browser manual-token/OAuth override is blocked while server token is configured.
+- Confirmed Upstox HTTP 401 / UDAPI100050 => TOKEN INVALID.
+- Confirmed auth failure stops WebSocket reconnect churn for that token.
+- LIVE requires an actual fresh WebSocket market tick.
+- REST / WARMING / STALE / DATA ERROR / OFFLINE / TOKEN INVALID are distinct.
+- Unsupported/dead global cards stay hidden; Dow is not rendered/fabricated.
+
+LOCAL TESTS REQUIRED BEFORE PUSH
+- python -m compileall -q .
+- run all TEST_*.py
+- JavaScript syntax-check static inline script
+
+DEPLOYMENT
+1. Inspect Render autoDeploy setting BEFORE GitHub write.
+2. If autoDeploy is enabled, push the complete cumulative delta once and DO NOT trigger a second manual deploy.
+3. If autoDeploy is disabled, push first, then trigger exactly one deploy.
+4. Verify Render deploy status/logs.
+5. Verify live GET /api/health => version 72.2.
+6. Verify live GET /api/upstox/status => truthful data_status and server_token_configured (token value must never appear).
+7. Verify live GET /api/v72/status => release 72.2-timing-execution.
+8. Verify browser receives the new PWA cache and server-token controls.

@@ -1,0 +1,16 @@
+POWERHOUSE AI V71.4 — BIG MONEY ENTRY RADAR
+
+Added
+- Abnormal-volume footprint detector using rolling median RVOL.
+- Detects impulse + prior-range attack/break, absorption/level hold, volume contraction, retests and balance-edge breakout.
+- Bullish states: ABNORMAL VOLUME WATCH, ACCUMULATION / ABSORPTION, BIG MONEY ENTRY CONFIRMED.
+- Bearish mirror states: DISTRIBUTION / ABSORPTION, DISTRIBUTION / EXIT CONFIRMED.
+- Entry/absorption zone, trigger, invalidation, retest count and evidence-quality score.
+- Chart overlay for footprint zone and breakout trigger.
+- Chart Smart Money fusion now includes qualified footprint evidence.
+
+Truth / Safety
+- Big Money is a behavioural label only; anonymous price/volume cannot identify FII/DII/PRO or a named institution.
+- Evidence score is not probability of profit.
+- Current forming candle is excluded as an abnormal-volume spike candidate because its volume can be partial.
+- Read-only. No order execution.

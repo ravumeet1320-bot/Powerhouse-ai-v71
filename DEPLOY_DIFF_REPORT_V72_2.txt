@@ -1,0 +1,81 @@
+POWERHOUSE AI V72.2 — PRE-DEPLOY DIFF REPORT
+=============================================
+
+Compared sources
+1) FULL cumulative upload: 127 files (source of truth)
+2) Original deploy patch: 9 files
+3) GitHub: ravumeet1320-bot/Powerhouse-ai-v71, branch main
+
+Conclusion
+- Original deploy patch is INCOMPLETE for current GitHub main.
+- Every one of its 9 files matches the uploaded FULL build version, but it omits cumulative dependencies required to move the current V71 repo safely to V72.2.
+- Current GitHub app.py reports V71 / 71.0 and does not contain v72_engine.py or v72_2_engine.py.
+- v72_2_engine.py imports v72_engine.py, so deploying the original patch to current main would leave a missing runtime dependency.
+- Cumulative V71.3–V71.5 runtime changes are also absent/different on current main and are preserved in the corrected patch.
+
+Original 9-file patch contents
+- CHANGELOG_v72_2.txt
+- README.md
+- TEST_V72_2.py
+- V72_2_DEPLOY_CHECKLIST.txt
+- app.py
+- static/index.html
+- static/manifest.webmanifest
+- static/sw.js
+- v72_2_engine.py
+
+Required cumulative runtime replacements
+- app.py
+- ai_engine.py
+- opportunity_engine.py
+- upstox_service.py
+- v62_engine.py
+- v63_engine.py
+- v67_engine.py
+- static/index.html
+- static/manifest.webmanifest
+- static/sw.js
+
+Required cumulative runtime additions
+- v72_engine.py
+- v72_2_engine.py
+
+Why the extra runtime files are required
+- v62/v63: working-feed-only global/cross-market policy; dead/unverified cards are not promoted.
+- v67: cumulative chart/pattern + Big Money behavioural footprint improvements used by later chart intelligence.
+- ai_engine/opportunity_engine: V71.5 tiered early/confirmed/watch call-recovery logic.
+- upstox_service: cumulative full-F&O/live foundation + V72.1 cadence plus V72.2 auth/status hardening.
+- v72_engine: V72/V72.1 predictive pre-move + fast-signal core imported by v72_2_engine.
+- app/static: API wiring, V72.2 UI, truthful feed states, PWA cache and server-token UI behavior.
+
+Verified unchanged against current GitHub — do not replace
+- requirements.txt, render.yaml, Dockerfile
+- candle_intel.py, daily_plan_engine.py, demo_data.py, index_brain.py
+- market_intel.py, nse_oi.py, smart_money.py, supreme_engine.py, volume_intel.py
+- v53_engine.py, v54_engine.py, v55_engine.py, v56_engine.py, v57_engine.py, v58_engine.py
+- v60_engine.py, v61_engine.py, v64_engine.py, v65_engine.py, v66_engine.py
+- v69_engine.py, v70_engine.py, v71_engine.py
+- static/apple-touch-icon.png, static/icon-192.png, static/icon-512.png
+
+V72.2 hardening added during inspection
+- UPSTOX_ACCESS_TOKEN env token is authoritative when present.
+- Browser manual-token/OAuth override is blocked when server token exists.
+- Legacy per-device token file is cleared on disconnect and cannot shadow the server token.
+- HTTP 401/UDAPI100050 => TOKEN INVALID.
+- Confirmed invalid token stops WebSocket reconnect churn.
+- Startup performs a read-only validation through Upstox before normal hydration.
+- LIVE requires a fresh WebSocket tick; transport connection alone cannot make the UI LIVE.
+- REST, WARMING, STALE, DATA ERROR, OFFLINE and TOKEN INVALID remain distinct.
+- Fixed missing request-scoped _require_auth/build_snapshot helpers used by legacy V64–V67 routes.
+- Browser hides token/OAuth controls when server Analytics Token is active.
+- PWA cache bumped to force the hardened frontend to replace stale cached HTML.
+
+Test result before deployment
+- python -m compileall: PASS
+- All available TEST_*.py from V53 through V72.2: PASS
+- TEST_V72_2_AUTH_STATUS.py: PASS
+- app helper definition/AST check: PASS
+- FastAPI ASGI route regression (health/status/manual-token block/legacy auth helper): PASS
+- static/index.html inline JavaScript syntax check (node --check): PASS
+
+Deployment is intentionally not started until Render service/workspace + autoDeploy can be verified.

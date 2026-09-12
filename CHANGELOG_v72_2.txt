@@ -1,0 +1,56 @@
+POWERHOUSE AI V72.2 — TIMING + EXECUTION INTELLIGENCE
+=====================================================
+
+Cumulative base
+- Preserves V71/V72/V72.1 market census, fast-signal core, predictive strike logic, Hero options, chart intelligence and pastel-rainbow mobile UI.
+
+New V72.2 timing / execution layer
+- Trigger Countdown trajectory with previous-value delta.
+- Confidence stability + evidence persistence retained as action gates.
+- Pipeline Latency Guardian: feed, scanner, decision, total pipeline and estimated alert lag.
+- Opportunity decay + execution-oriented crowding detector.
+- Evidence-based re-entry engine (pullback/retest only; never averaging down).
+- Move quality: EARLY / CLEAN / CROWDED / LATE / EXHAUSTED.
+- Opening 5-minute session mode with stricter freshness and slightly faster thresholds.
+- Opening auction gap/hold context when source fields exist.
+- Expiry Gamma Mode / next-day / short-dated option weighting.
+- False-breakout detector using recent price path + depth/momentum conflict.
+- Premium Response Test: rejects option strikes that do not respond when underlying impulse is present.
+- IV overpricing + theta danger checks in strike execution quality.
+- Multi-timeframe trigger alignment (fast census + chart horizon proxy).
+- Conflict Matrix with ALLOW / WARN / BLOCK outcomes.
+- Alert priority: P0 Hero, P1 Trigger, P2 Arming, P3 Watch.
+- Duplicate alert suppression and opportunity replacement metadata.
+- Observed signal follow-through / false-positive forensics (retrospective only).
+- Bounded adaptive threshold calibration: maximum +/-3 score points with audit log after adequate sample size.
+- Replay API for historical V72 snapshots/events with no look-ahead insertion.
+
+New API surfaces
+- GET /api/v72/forensics
+- GET /api/v72/replay/{symbol}
+- Existing /api/v72/* endpoints now use V72.2 timing/execution engine.
+
+UI
+- AI Brain 3.2 card with session, priority, countdown delta, conflict, re-entry and crowding.
+- Priority Alert Center.
+- Signal Quality Lab.
+- Enhanced Pre-Move Radar rows with P-level, countdown trajectory, MTF, conflict and re-entry state.
+- Enhanced Latency Guardian with scanner/decision/alert lag.
+- PWA cache bumped to V72.2.
+
+Truth / safety
+- Read-only analytics; no broker execution or P&L automation.
+- Observed follow-through statistics are retrospective audits, not guaranteed future accuracy.
+- P0/P1/P2/P3 are attention priorities, not probabilities.
+- Missing/stale data is not fabricated.
+
+V72.2 deployment hardening
+- Render/server `UPSTOX_ACCESS_TOKEN` is authoritative when configured; browser manual-token/OAuth override is blocked.
+- Confirmed Upstox HTTP 401 / UDAPI100050 is mapped to `TOKEN INVALID` and stops reconnect churn for that token.
+- `LIVE` now requires a genuinely fresh WebSocket market tick; REST/WARMING/STALE/DATA ERROR/OFFLINE remain distinct truthful states.
+- Startup performs read-only token validation before normal background market-data hydration.
+- Browser token controls hide automatically when the server Analytics Token is active.
+- Repaired missing request-scoped `_require_auth` / `build_snapshot` helpers used by legacy V64-V67 routes after multi-device migration.
+- Removed obsolete Dow feed examples from `.env.example`; working verified feeds only remain the display policy.
+- Added `TEST_V72_2_AUTH_STATUS.py` regression coverage.
+- PWA cache bumped so the hardened UI replaces stale cached HTML.

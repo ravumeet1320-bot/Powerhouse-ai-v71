@@ -1,0 +1,11 @@
+POWERHOUSE AI V71.2 — Resilient Live Analytics Hotfix
+
+- A temporary option-chain REST failure no longer blanks the entire app.
+- Each analytics engine (V31/V50/V53/.../V71) is isolated: one module failure cannot stop all other pages.
+- Frontend renderers are isolated: one UI renderer exception cannot prevent the rest of the software from rendering.
+- LIVE badge now requires actual core market data, not only an authenticated/connected transport.
+- Explicit WARMING / REST / DATA ERROR states prevent a misleading LIVE badge.
+- /api/ai/snapshot now returns snapshot_health and module_health diagnostics.
+- AutoTrender keeps running from available non-chain inputs and shows feed/chain state.
+- Service worker cache bumped to force the new frontend to replace stale cached UI.
+- Read-only guarantees preserved: no orders, execution, P&L or paper trading added.

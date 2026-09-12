@@ -1,0 +1,9 @@
+POWERHOUSE AI V71.1 — AUTOTREND LIVE INPUT FIX
+
+- AutoTrender forces a fresh AI snapshot when opened.
+- AutoTrender renders before legacy panels so an unrelated UI error cannot leave it blank.
+- AI snapshot degrades gracefully if the option-chain refresh temporarily fails.
+- AutoTrender shows feed mode, last tick age, and chain readiness.
+- Snapshot errors are shown in-panel and retried automatically every 5 seconds.
+- Service-worker cache bumped to deliver the fixed UI.
+- Read-only behavior preserved.

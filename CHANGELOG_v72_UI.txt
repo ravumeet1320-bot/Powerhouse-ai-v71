@@ -1,0 +1,8 @@
+POWERHOUSE AI V72 — PASTEL RAINBOW UI
+
+This visual shell is now part of the cumulative V72 Predictive AI Brain 3.0 build.
+For the complete backend + intelligence + UI change list, see CHANGELOG_v72.txt.
+
+UI includes light pastel-rainbow aurora, glass cards, animated LIVE state, value pulse, scroll reveal, floating AI Brain control, mobile-first navigation, AI Brain 3.0 Home cards, Pre-Move Radar, heatmaps, Latency Guardian and V72 Predictive Chart Brain.
+
+Truth lock: visual states only render real/derived API values. Missing or stale data is never replaced with fabricated market data.

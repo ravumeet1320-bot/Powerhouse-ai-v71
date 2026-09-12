@@ -850,6 +850,41 @@ class AIFusionEngine:
         lifecycle, lifecycle_note = self._lifecycle(side, confidence, fusion)
         signal = "BUY CE" if side == "CE" else "BUY PE" if side == "PE" else "WAIT"
 
+        # V71.5 keeps the conservative master signal intact, but exposes a separate
+        # best-available analytical setup so STRICT mode does not look dead when a
+        # directional edge is forming. This never upgrades missing/stale data into a call.
+        setup_side = side
+        setup_signal = signal
+        setup_tier = "CONFIRMED" if side != "WAIT" else "NONE"
+        setup_reasons: List[str] = []
+        setup_contract = best
+        if side == "WAIT" and raw_side in ("CE", "PE") and best:
+            abs_fusion = abs(fusion)
+            early_ok = (
+                abs_fusion >= 0.15 and confidence >= 55 and data_quality >= 55
+                and trap <= 72 and sf(best.get("score")) >= 60
+            )
+            watch_ok = (
+                abs_fusion >= 0.12 and confidence >= 48 and data_quality >= 50
+                and trap <= 78 and sf(best.get("score")) >= 55
+            )
+            if early_ok:
+                setup_side = raw_side
+                setup_signal = f"EARLY {raw_side} SETUP"
+                setup_tier = "EARLY"
+                setup_reasons = [
+                    f"fusion {abs_fusion*100:.0f}", f"confidence {confidence:.0f}",
+                    f"contract {sf(best.get('score')):.0f}", f"trap {trap:.0f}",
+                ]
+            elif watch_ok:
+                setup_side = raw_side
+                setup_signal = f"WATCH {raw_side}"
+                setup_tier = "WATCH"
+                setup_reasons = [
+                    f"fusion {abs_fusion*100:.0f}", f"confidence {confidence:.0f}",
+                    f"contract {sf(best.get('score')):.0f}",
+                ]
+
         # Backups are only from the qualified directional side. Radar still shows both sides for transparency.
         backups = [x for x in side_candidates[1:4]] if side != "WAIT" else []
         top_contract = best if side != "WAIT" else None
@@ -887,6 +922,11 @@ class AIFusionEngine:
             "signal": signal,
             "side": side,
             "raw_side": raw_side,
+            "setup_signal": setup_signal,
+            "setup_side": setup_side,
+            "setup_tier": setup_tier,
+            "setup_contract": setup_contract,
+            "setup_reasons": setup_reasons,
             "confidence": round(confidence, 1),
             "fusion_score": round(fusion * 100, 1),
             "agreement": round(agreement * 100, 1),

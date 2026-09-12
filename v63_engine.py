@@ -5,19 +5,11 @@ from typing import Any
 
 from v62_engine import build_v62, record_cross_market, latest_cross_market, _external_from_env, _f, _pct, _symbol_rows, history
 
-GLOBAL_MARKETS = [
-    # Futures stay separate from cash/global indices. Never relabel Dow Jones as Dow Futures.
-    ('DOW FUTURES','DOW_FUTURES'),
-    ('S&P 500 FUTURES','SP500_FUTURES'),
-    ('NASDAQ FUTURES','NASDAQ_FUTURES'),
-    ('NIKKEI 225','NIKKEI_225'),
-    ('HANG SENG','HANG_SENG'),
-    ('DAX','DAX'),
-    ('FTSE 100','FTSE_100'),
-]
+GLOBAL_MARKETS = []  # V71.3: remove dead external futures adapters from the live product.
+
 
 UPSTOX_MARKET_ORDER = [
-    'GIFT NIFTY','DOW JONES','S&P 500','NASDAQ / US TECH 100','INDIA VIX',
+    'GIFT NIFTY','S&P 500','NASDAQ / US TECH 100','INDIA VIX',
     'DXY','USD/INR','BRENT CRUDE','WTI CRUDE','GOLD'
 ]
 FRED_YIELDS = [('US 2Y','DGS2'),('US 5Y','DGS5'),('US 10Y','DGS10'),('US 30Y','DGS30')]
@@ -182,42 +174,41 @@ def _age_label(row):
     return row
 
 def global_markets_dashboard(market:dict[str,Any]):
-    out=[]; seen=set()
+    """Return only verified feeds that currently have a usable value.
 
-    # 1) Authenticated Upstox Global Instruments, injected by app.py per device/session.
+    V71.3 intentionally removes Dow and all dead/unconfigured futures adapters from the
+    product surface. Missing feeds are counted diagnostically but never rendered as cards.
+    """
+    out=[]
+    hidden=[]
+
+    # 1) Authenticated Upstox Global Instruments. Dow is intentionally excluded.
     up=market.get('upstox_global_markets') or {}
     up_rows=up.get('markets') if isinstance(up,dict) else []
     if isinstance(up_rows,list):
         by={str(x.get('market') or '').upper():dict(x) for x in up_rows if isinstance(x,dict)}
         for name in UPSTOX_MARKET_ORDER:
             row=by.get(name.upper())
-            if row:
-                out.append(_age_label(row)); seen.add(name.upper())
+            if not row:
+                continue
+            if _f(row.get('price')) is None or str(row.get('status') or '').upper()=='UNAVAILABLE':
+                hidden.append(name); continue
+            out.append(_age_label(row))
 
-    # 2) Genuine futures adapters only. These can be licensed or legitimately delayed provider endpoints.
-    for name,prefix in GLOBAL_MARKETS:
-        live=_external_from_env(name,prefix)
-        if live and live.get('status')=='LIVE':
-            try:record_cross_market(name,live['price'],live.get('change_pct'),live.get('source','configured'),live.get('verified',False),live.get('epoch'),live)
-            except Exception:pass
-            row=live
-        else:
-            cached=latest_cross_market(name)
-            if cached:
-                cached=dict(cached); cached['status']='CACHED'; cached['age_sec']=time.time()-cached['epoch']; row=cached
-            else:
-                row=live or {'market':name,'status':'UNAVAILABLE','reason':f'Configure {prefix}_JSON_URL with a legitimate futures/data provider'}
-        row=dict(row); row['truth_label']='FUTURES' if 'FUTURES' in name else 'GLOBAL INDEX'
-        out.append(_age_label(row)); seen.add(name.upper())
+    # 2) External futures adapters are disabled in V71.3. If added later, they must be
+    # explicitly verified before re-entering the product surface.
 
-    # 3) Official daily US Treasury yields via FRED.
+    # 3) Official daily US Treasury yields via FRED; hide rows when FRED is unavailable.
     yields=_fred_treasury_yields()
-    out.extend(yields)
-    y2=next((_f(x.get('price')) for x in yields if x.get('market')=='US 2Y'),None)
-    y10=next((_f(x.get('price')) for x in yields if x.get('market')=='US 10Y'),None)
+    good_yields=[]
+    for row in yields:
+        if _f(row.get('price')) is None:
+            hidden.append(str(row.get('market') or 'TREASURY')); continue
+        good_yields.append(row); out.append(row)
+    y2=next((_f(x.get('price')) for x in good_yields if x.get('market')=='US 2Y'),None)
+    y10=next((_f(x.get('price')) for x in good_yields if x.get('market')=='US 10Y'),None)
     curve=round((y10-y2)*100,1) if y2 is not None and y10 is not None else None
 
-    # Risk score uses directional risk assets and inverse VIX/yield pressure. Yields are daily context.
     directional=[]
     for x in out:
         ch=_f(x.get('change_pct')); name=str(x.get('market') or '')
@@ -228,11 +219,12 @@ def global_markets_dashboard(market:dict[str,Any]):
     state='INSUFFICIENT VERIFIED DATA' if score is None else ('GLOBAL RISK-ON' if score>=35 else ('GLOBAL RISK-OFF' if score<=-35 else 'MIXED GLOBAL CUES'))
     source_counts={}
     for x in out:
-        src=str(x.get('source') or 'unconfigured'); source_counts[src]=source_counts.get(src,0)+1
-    return {'status':'READY' if any(x.get('price') is not None for x in out) else 'PARTIAL','markets':out,
+        src=str(x.get('source') or 'verified'); source_counts[src]=source_counts.get(src,0)+1
+    return {'status':'READY' if out else 'PARTIAL','markets':out,
             'global_cue_score':round(score,1) if score is not None else None,'global_state':state,
             'yield_curve_10y_2y_bps':curve,'source_counts':source_counts,
-            'policy':'No Moneycontrol/TradingView scraping. Cash indices are never mislabeled as futures. Missing futures remain UNAVAILABLE.'}
+            'hidden_unavailable_count':len(hidden),'hidden_unavailable':hidden,
+            'policy':'Only working verified feeds are shown. Dow and dead/unconfigured futures adapters are removed from the live product surface.'}
 
 def build_v63(market:dict[str,Any], v62:dict[str,Any]|None=None):
     v62=v62 or build_v62(market)
@@ -245,7 +237,7 @@ def build_v63(market:dict[str,Any], v62:dict[str,Any]|None=None):
         'sector_strength':sector,'sector_persistence':persistence,'market_movers':movers,'global_markets':global_dash,
         'v62_readiness':v62.get('readiness',{}),
         'implemented_now':[
-            "Today's Strongest Sector ranking","Top gainer inside strongest sector","Weakest sector and weakest stock","Sector breadth and equal-weight change","RVOL-confirmed sector leadership when available","Sector leadership persistence from stored observations","Top gainers/losers","Highest-volume / highest-RVOL movers","Global markets command center","Authenticated Upstox Global Instruments","GIFT NIFTY + Dow Jones + S&P 500 + US Tech 100","DXY/USDINR/Brent/WTI/Gold indicators when Upstox exposes them","Official FRED US 2Y/5Y/10Y/30Y yields","10Y-2Y yield-curve spread","S&P 500 futures adapter","Nasdaq futures adapter","India VIX adapter","Nikkei/Hang Seng/DAX/FTSE adapters","Global risk-on/risk-off evidence state"
+            "Today's Strongest Sector ranking","Top gainer inside strongest sector","Weakest sector and weakest stock","Sector breadth and equal-weight change","RVOL-confirmed sector leadership when available","Sector leadership persistence from stored observations","Top gainers/losers","Highest-volume / highest-RVOL movers","Global markets command center","Authenticated Upstox Global Instruments","GIFT NIFTY + working Upstox global indicators","DXY/USDINR/Brent/WTI/Gold indicators when Upstox exposes them","Official FRED US 2Y/5Y/10Y/30Y yields","10Y-2Y yield-curve spread","India VIX and working global indicator adapters","Global risk-on/risk-off evidence state"
         ],
         'truth_policy':['Sector score is descriptive evidence, not success probability.','No market value is fabricated.','TradingView is used only as information-architecture inspiration; live data must come from legitimate configured sources.','Read-only analytics; no broker execution.']
     }

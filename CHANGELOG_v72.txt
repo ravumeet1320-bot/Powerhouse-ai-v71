@@ -1,0 +1,48 @@
+POWERHOUSE AI V72 — PREDICTIVE AI BRAIN 3.0 + PASTEL RAINBOW MOBILE OS
+
+Cumulative build based on V71.5 Call Recovery. Existing V70/V71/V60 etc. engines and read-only architecture are preserved.
+
+CORE V72
+- AI Brain 3.0 with one-thesis BUY CE / BUY PE / WAIT decision and explicit conflict resolver.
+- Leading-first decision policy: compression, liquidity/depth pressure, OI state, relative-strength acceleration, sector breadth and pre-move persistence drive the V72 score.
+- Full discovered F&O census remains before ranking; no fixed 30/50/80 universe gate.
+- Pre-Move state machine: SCANNING -> EARLY CLUE -> BUILDING -> ARMING -> TRIGGER READY -> MOVE STARTED / EXPANSION-LATE.
+- Trigger Countdown 0-100, Move Quality, estimated breakout timing band, opportunity decay and DO NOT CHASE late-entry filter.
+- Leader/Follower sector cascade watch.
+- Latency Guardian: WebSocket/REST state, feed lag, median quote age and p95 quote age.
+
+DEPTH / OI / DATA BIAS
+- Weighted market-depth imbalance using up to 30 supplied levels, with top-book fallback when deeper levels are unavailable.
+- Buy/sell wall detection, depth pressure 0-100 and short-term persistence state.
+- Futures price/OI classification: long buildup, short buildup, short covering, long unwinding.
+- POSITIVE / NEGATIVE / NEUTRAL / CONFLICTING evidence matrix and data bias.
+
+PREDICTIVE STRIKE INTELLIGENCE
+- On-demand exact strike ranking near ATM using direction alignment, liquidity/spread, delta, gamma, IV, theta risk, OI flow and premium response.
+- ₹50 minimum premium for Hero eligibility at alert time; no hard upper premium cap.
+- OI PCR, Volume PCR, Change-in-OI PCR, ATM-weighted PCR and session PCR velocity when enough snapshots exist.
+- Multi-strike confirmation and explicit WHY NOT HERO rejection reasons.
+- Optional comparison of the first two listed expiries on a stock-specific request; whole-market scanning does not continuously fetch every chain.
+
+PREDICTIVE CHART
+- V72 chart endpoint preserves V71/V67 chart intelligence and adds RSI regular/hidden divergence, liquidity sweeps and volatility squeeze state.
+- Existing forming-pattern lifecycle, auto Fibonacci, Big Money footprint and structure intelligence remain available.
+- V72 predictive score does not use VWAP/EMA/MACD as primary drivers; those remain context in legacy chart modules.
+
+AUDIT / LEARNING DATA
+- V72 pre-move snapshots and promotion events persisted in SQLite.
+- Lead-Time Audit measures first ARMING/TRIGGER READY detection before observed follow-through where enough stored data exists.
+- V71 missed-move audit remains embedded for comparison.
+
+UI
+- Light pastel-rainbow animated mobile-first shell retained.
+- AI Brain 3.0 card, Command Center, Pre-Move Radar, Market Heatmap, Sector Ignition and Latency Guardian added to Home.
+- Hero deep scan uses V72 predictive strike endpoint.
+- Chart page adds V72 Predictive Chart Brain.
+- PWA cache bumped to force updated UI.
+
+TRUTH / SAFETY LOCK
+- Read-only analytics only. No broker execution, automatic orders, P&L or paper trading.
+- No 100% win / move-capture claim.
+- Missing or stale data remains explicit.
+- “Big Money” is behavioural footprint terminology only; anonymous activity is never attributed to FII/DII/PRO without a verified source.

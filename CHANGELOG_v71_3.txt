@@ -1,0 +1,14 @@
+POWERHOUSE AI V71.3 — WORKING FEEDS + CHART PATTERN FIX
+
+1. Removed Dow from the live global product surface.
+2. Removed dead/unconfigured external futures cards; only working verified feeds render.
+3. FRED yield cards render only when a numeric observation is available.
+4. Legacy V62 global panel no longer advertises or renders Dow Futures.
+5. Chart pattern detector now scans up to 120 candles independent of visible chart bars.
+6. Adaptive pivots use wider/finer fallback windows so fresh micro-swings do not erase valid patterns.
+7. Improved Double Top/Bottom, Head & Shoulders, triangles, wedges, range breakouts, compression, channels, flags/pennants, cup & handle.
+8. Frontend chart patterns merge with backend lifecycle signals and de-duplicate by pattern name.
+9. Backend pattern lifecycle now also recognizes classical double tops/bottoms, H&S, compression, and flag/pennant candidates.
+10. No pattern is fabricated: weak geometry still returns no qualified pattern.
+11. Service-worker cache bumped so mobile receives the fix.
+12. Read-only / no-order architecture unchanged.

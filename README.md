@@ -1,3 +1,23 @@
+# POWERHOUSE AI V72.2 — Timing + Execution Intelligence + Pastel Rainbow Mobile OS
+
+V72 is a cumulative read-only upgrade over V71.5. It keeps the existing scanners, call-recovery tiers, universal F&O census, Hero engines and chart stack, then adds an earlier pre-move decision layer plus the approved light pastel-rainbow mobile command UI.
+
+## V72 core
+- Leading-first AI Brain 3.0: one thesis (`BUY CE` / `BUY PE` / `WAIT`) with conflict resolution.
+- Pre-Move Radar: compression, relative-strength acceleration, sector ignition, depth pressure/persistence, futures OI state, trigger countdown, opportunity decay and late-entry filter.
+- Predictive Strike Intelligence: ₹50+ Hero eligibility floor, no upper premium cap, PCR family, Greeks, liquidity/spread, multi-strike confirmation and WHY NOT HERO.
+- On-demand first-two-expiry comparison for exact stock/strike research.
+- Predictive Chart Brain: RSI divergence, liquidity sweep, squeeze/compression plus preserved V67/V71 patterns, Fibonacci, Big Money and structure.
+- Lead-Time Audit + stored pre-move promotion events.
+- Latency Guardian and explicit LIVE / REST / DELAYED / STALE data state.
+- Full discovered F&O census remains before ranking; no internal 30/50/80-stock universe cap.
+- Light pastel-rainbow glassmorphism mobile UI with AI Brain, Command Center, Pre-Move Radar, Market/Sector Heatmap and predictive chart card.
+- Read-only: no orders, execution, P&L or guaranteed-profit claims.
+
+See `CHANGELOG_v72.txt` and `TEST_V72.py`.
+
+---
+
 # POWERHOUSE AI V71 — Intelligence Chart + Universal Opportunity Radar OS
 
 V71 is a cumulative read-only upgrade over V70 focused on observation coverage and early discovery. It scores every discovered F&O underlying before UI ranking, uses a lightweight LTPC WebSocket census with richer feed promotion, adds stock-option Zero-to-Hero deep scanning, persistent discovery/missed-move audit, and upgrades Chart into an Intelligence Chart with structure, VWAP, volume profile, confluence and conditional scenarios.
@@ -212,20 +232,22 @@ This build is a Progressive Web App (PWA). Host it on HTTPS and install it from 
 
 ## Upstox connection
 
-Use your own Upstox market-data access. Paste a valid token inside your privately hosted app or configure OAuth in `.env`.
+For Render/production, use the read-only Upstox Analytics Token only as the server environment variable `UPSTOX_ACCESS_TOKEN`. When it is present, POWERHOUSE AI treats it as the source of truth: browser token paste, OAuth override and browser-side disconnect are disabled. The token is never returned by the API/UI.
 
-Never send access tokens, API keys or API secrets in chat.
+A confirmed Upstox HTTP 401 is exposed as `TOKEN INVALID`; WebSocket reconnect is stopped for that token instead of creating a reconnect storm. `LIVE` is shown only after a fresh WebSocket market tick. Other truthful states are `REST`, `WARMING`, `STALE`, `DATA ERROR`, `OFFLINE` and `TOKEN INVALID`.
 
-Example `.env`:
+Never send access tokens, API keys or API secrets in chat, and never commit them to Git. Generating a replacement Analytics Token should be followed by updating the Render environment variable and restarting/redeploying the service.
+
+Example production environment:
 
 ```env
-UPSTOX_API_KEY=
-UPSTOX_API_SECRET=
-UPSTOX_REDIRECT_URI=https://YOUR-DOMAIN/api/upstox/callback
+UPSTOX_ACCESS_TOKEN=
 UPSTOX_UNDERLYING_KEY=NSE_INDEX|Nifty 50
 UPSTOX_ENABLE_WEBSOCKET=true
 UPSTOX_ENABLE_BREADTH=true
 ```
+
+OAuth/manual-token mode remains available only for local deployments where `UPSTOX_ACCESS_TOKEN` is not configured.
 
 ## Local / LAN test
 
@@ -294,3 +316,7 @@ Important source-truth rule: Dow Jones / S&P 500 / US Tech 100 cash/global indic
 - No institution identity is inferred from anonymous order-book activity.
 - New APIs: `/api/v69/status`, `/api/v69/depth?symbol=...`, `/api/v69/bulk-block`.
 - Read-only analytics; no automated execution.
+
+
+## V72.2 Timing + Execution Intelligence
+V72.2 keeps the V72.1 fast-signal core and adds trigger-countdown trajectory, confidence/evidence persistence, pipeline latency guardian, execution-oriented crowding and false-breakout guards, evidence-based re-entry, opening-five-minute mode, expiry gamma mode, premium-response rejection, P0–P3 alert priority, duplicate suppression/opportunity replacement, observed signal forensics, bounded ±3 threshold calibration, replay timelines, and multi-timeframe trigger checks. The system remains read-only and does not guarantee accuracy, profit, or full move capture.

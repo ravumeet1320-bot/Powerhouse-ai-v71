@@ -97,6 +97,11 @@ class UpstoxError(RuntimeError):
     pass
 
 
+class UpstoxAuthError(UpstoxError):
+    """Confirmed Upstox authentication failure (HTTP 401 / invalid token)."""
+    pass
+
+
 class UpstoxService:
     """Live Upstox market-data bridge for the NIFTY Powerhouse UI.
 
@@ -137,8 +142,17 @@ class UpstoxService:
         self.subscribed_mode_by_key: Dict[str, str] = {}
 
         self.oauth_state: Optional[str] = None
-        self.access_token = os.getenv("UPSTOX_ACCESS_TOKEN", "").strip()
+        # Render/server Analytics Token is authoritative when configured. Browser/manual
+        # credentials are allowed only for local deployments without an env token.
+        self.server_access_token = os.getenv("UPSTOX_ACCESS_TOKEN", "").strip()
+        self.server_token_configured = bool(self.server_access_token)
+        self.access_token = self.server_access_token
         self.token_source = "env" if self.access_token else ""
+        self.token_invalid = False
+        self.token_invalid_reason = ""
+        self.token_validated_at = 0.0
+        self.last_rest_success_ts = 0.0
+        self.last_data_error = ""
         if not self.access_token:
             self._load_token_file()
 
@@ -178,7 +192,7 @@ class UpstoxService:
         self.fno_baseline_sync_seconds = max(2, int(os.getenv("UPSTOX_FNO_BASELINE_SYNC_SECONDS", "4")))
         self.fno_baseline_cursor = 0
         self.stock_chain_cache: Dict[str, Dict[str, Any]] = {}
-        self.stock_chain_ttl_seconds = max(8, int(os.getenv("UPSTOX_STOCK_CHAIN_TTL_SECONDS", "20")))
+        self.stock_chain_ttl_seconds = max(8, int(os.getenv("UPSTOX_STOCK_CHAIN_TTL_SECONDS", "10")))
         self.index_levels: Dict[str, Dict[str, Any]] = {
             "NIFTY": {"instrument_key": self.underlying_key, "ltp": 0.0, "cp": 0.0},
             "BANKNIFTY": {"instrument_key": BANKNIFTY_KEY_DEFAULT, "ltp": 0.0, "cp": 0.0},
@@ -231,6 +245,8 @@ class UpstoxService:
             pass
 
     def set_manual_token(self, token: str, persist: bool = True) -> None:
+        if self.server_token_configured:
+            raise UpstoxError("Server Analytics Token is configured; browser token override is disabled.")
         token = token.strip()
         if len(token) < 20:
             raise UpstoxError("Access token looks too short.")
@@ -254,16 +270,29 @@ class UpstoxService:
 
     def clear_token(self) -> None:
         with self.lock:
-            self.access_token = ""
-            self.token_source = ""
             self._stop_streamer_locked()
             self.chain.clear()
             self.instrument_lookup.clear()
             self.current_expiry = None
+            self.token_invalid = False
+            self.token_invalid_reason = ""
+            self.token_validated_at = 0.0
+            self.last_data_error = ""
+            if self.server_token_configured:
+                # A browser cannot remove/replace the Render-side Analytics Token.
+                self.access_token = self.server_access_token
+                self.token_source = "env"
+            else:
+                self.access_token = ""
+                self.token_source = ""
         try:
+            # Clear any legacy per-device token file so it can never shadow a future
+            # server token after configuration changes.
             self.token_file.unlink(missing_ok=True)
         except Exception:
             pass
+        if self.server_token_configured:
+            self.start_background()
 
     def _reset_live_state_for_new_token(self) -> None:
         self._stop_streamer_locked()
@@ -273,6 +302,12 @@ class UpstoxService:
         self.current_expiry = None
         self.last_rest_sync = 0
         self.last_analytics_sync = 0
+        self.last_rest_success_ts = 0.0
+        self.last_message_ts = 0.0
+        self.token_invalid = False
+        self.token_invalid_reason = ""
+        self.token_validated_at = 0.0
+        self.last_data_error = ""
         self.streamer_error = ""
 
     @property
@@ -284,6 +319,8 @@ class UpstoxService:
         return bool(self.access_token)
 
     def oauth_login_url(self) -> str:
+        if self.server_token_configured:
+            raise UpstoxError("Server Analytics Token is active; browser OAuth override is disabled.")
         if not self.api_key:
             raise UpstoxError("UPSTOX_API_KEY is missing in .env")
         state = secrets.token_urlsafe(24)
@@ -299,6 +336,8 @@ class UpstoxService:
         return f"{BASE_V2}/login/authorization/dialog?{qs}"
 
     def exchange_code(self, code: str, state: Optional[str]) -> Dict[str, Any]:
+        if self.server_token_configured:
+            raise UpstoxError("Server Analytics Token is active; browser OAuth override is disabled.")
         if not self.configured_app:
             raise UpstoxError("API key, secret, or redirect URI is missing in .env")
         if self.oauth_state and state != self.oauth_state:
@@ -340,16 +379,51 @@ class UpstoxService:
             "Authorization": f"Bearer {self.access_token}",
         }
 
+    @staticmethod
+    def _looks_like_auth_failure(value: Any) -> bool:
+        text = str(value or "").lower()
+        return any(x in text for x in ("udapi100050", "invalid token", "unauthorized", "authentication failed", "401"))
+
+    def _mark_auth_invalid(self, detail: Any) -> None:
+        reason = str(detail or "Invalid Upstox token")[:300]
+        with self.lock:
+            self.token_invalid = True
+            self.token_invalid_reason = reason
+            self.last_data_error = reason
+            self.streamer_error = "TOKEN INVALID"
+            self._stop_streamer_locked()
+
+    def _mark_rest_success(self) -> None:
+        with self.lock:
+            self.last_rest_success_ts = time.time()
+            self.token_validated_at = self.token_validated_at or self.last_rest_success_ts
+            self.last_data_error = ""
+            self.token_invalid = False
+            self.token_invalid_reason = ""
+
     def _json_or_error(self, resp: httpx.Response, label: str) -> Dict[str, Any]:
         try:
             payload = resp.json()
         except Exception:
             payload = {"raw": resp.text[:800]}
+        if resp.status_code == 401:
+            msg = payload.get("message") or payload.get("errors") or payload.get("raw") or payload
+            detail = f"Upstox {label} failed (401): {msg}"
+            self._mark_auth_invalid(detail)
+            raise UpstoxAuthError(f"TOKEN INVALID — {detail}")
         if resp.status_code >= 400:
             msg = payload.get("message") or payload.get("errors") or payload.get("raw") or payload
+            with self.lock:
+                self.last_data_error = f"Upstox {label} failed ({resp.status_code}): {msg}"[:300]
             raise UpstoxError(f"Upstox {label} failed ({resp.status_code}): {msg}")
         if isinstance(payload, dict) and payload.get("status") == "error":
+            if self._looks_like_auth_failure(payload):
+                self._mark_auth_invalid(payload)
+                raise UpstoxAuthError(f"TOKEN INVALID — Upstox {label} error: {payload}")
+            with self.lock:
+                self.last_data_error = f"Upstox {label} error: {payload}"[:300]
             raise UpstoxError(f"Upstox {label} error: {payload}")
+        self._mark_rest_success()
         return payload
 
     def get(self, url: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -651,8 +725,8 @@ class UpstoxService:
     def global_market_snapshot(self, force: bool = False) -> Dict[str, Any]:
         """Authenticated Upstox global indices/indicators with explicit latency metadata.
 
-        This intentionally does not rename DOW JONES/US 30 as Dow Futures. Actual futures
-        must come from a futures-capable licensed/delayed provider.
+        Only working, verified quote rows are returned. Unavailable global cards are hidden
+        instead of occupying the UI with dead feeds. Dow Jones is intentionally excluded.
         """
         now = time.time()
         if self.global_quote_cache and not force and now - self.global_quote_epoch < self.global_quote_sync_seconds:
@@ -663,7 +737,6 @@ class UpstoxService:
         instruments = self._load_global_instruments(force=force)
         targets = {
             "GIFT NIFTY": ["GIFT NIFTY"],
-            "DOW JONES": ["DOW JONES", "US 30"],
             "S&P 500": ["S&P 500", "S&P"],
             "NASDAQ / US TECH 100": ["US TECH 100", "NASDAQ 100", "NASDAQ"],
             "DXY": ["US DOLLAR INDEX", "DOLLAR INDEX", "DXY"],
@@ -689,9 +762,12 @@ class UpstoxService:
             cp = safe_float(q.get("prev_close_price") or q.get("cp") or (q.get("ohlc") or {}).get("close"))
             change = ((ltp - cp) / cp * 100.0) if ltp and cp else None
             latency = str(meta.get("latency") or "")
+            if not ltp:
+                # V71.3: dead/unavailable feeds are intentionally omitted from the product UI.
+                continue
             out[display] = {
-                "market": display, "price": ltp or None, "change_pct": round(change, 4) if change is not None else None,
-                "status": "LIVE" if ltp else "UNAVAILABLE", "verified": bool(ltp),
+                "market": display, "price": ltp, "change_pct": round(change, 4) if change is not None else None,
+                "status": "LIVE", "verified": True,
                 "source": "Upstox Global Instruments" if display != "INDIA VIX" else "Upstox NSE Index",
                 "instrument_key": key, "provider_latency": latency or None, "epoch": now,
                 "truth_label": "INDEX/INDICATOR" if display not in {"BRENT CRUDE", "WTI CRUDE", "GOLD", "USD/INR", "DXY"} else "GLOBAL INDICATOR",
@@ -1206,6 +1282,8 @@ class UpstoxService:
                 self.streamer_error = f"subscription update: {exc}"
 
     def _start_streamer_thread(self) -> None:
+        if self.token_invalid or not self.authenticated:
+            return
         if self.ws_thread and self.ws_thread.is_alive():
             return
 
@@ -1237,8 +1315,16 @@ class UpstoxService:
                     self._handle_stream_message(message)
 
                 def on_error(error: Any) -> None:
+                    if self._looks_like_auth_failure(error):
+                        self._mark_auth_invalid(error)
+                        try:
+                            streamer.disconnect()
+                        except Exception:
+                            pass
+                        return
                     with self.lock:
                         self.streamer_error = str(error)
+                        self.last_data_error = str(error)[:300]
 
                 def on_close(*_args: Any) -> None:
                     with self.lock:
@@ -1655,19 +1741,21 @@ class UpstoxService:
         rows = sorted((self.fno_equities or {}).values(), key=lambda x: str(x.get("symbol") or ""))
         return [str(x.get("symbol") or "").upper() for x in rows if x.get("symbol")]
 
-    def stock_option_chain_snapshot(self, symbol: str, force: bool = False) -> Dict[str, Any]:
-        """Nearest-expiry stock option chain with V71 cache and full verified fields.
+    def stock_option_chain_snapshot(self, symbol: str, force: bool = False, expiry_override: Optional[str] = None) -> Dict[str, Any]:
+        """Verified stock option chain with cache and optional explicit expiry.
 
-        This is intentionally called only for promoted candidates/on-demand symbols; the
-        universal scanner itself observes every F&O underlying without burning option-chain
-        requests for every strike of every stock on every cycle.
+        V71 callers keep the nearest-expiry behaviour. V72 may request one additional
+        listed expiry on-demand for expiry/strike comparison. The universal scanner still
+        observes every F&O underlying first and never burns full-chain calls for the whole
+        market continuously.
         """
         if not self.authenticated:
             raise UpstoxError("Connect Upstox first")
         sym = str(symbol or "").upper().strip()
         if not sym:
             raise UpstoxError("Stock symbol is required")
-        cached = self.stock_chain_cache.get(sym) or {}
+        cache_key = f"{sym}|{expiry_override or 'AUTO'}"
+        cached = self.stock_chain_cache.get(cache_key) or {}
         if cached and not force and time.time() - safe_float(cached.get("epoch")) < self.stock_chain_ttl_seconds:
             return dict(cached.get("payload") or {})
         if not self.fno_universe_ready:
@@ -1682,7 +1770,10 @@ class UpstoxService:
         contracts = self.get(f"{BASE_V2}/option/contract", params={"instrument_key": key}).get("data") or []
         today = now_ist().date().isoformat()
         expiries = sorted({str(x.get("expiry")) for x in contracts if x.get("expiry")})
-        expiry = next((x for x in expiries if x >= today), expiries[0] if expiries else None)
+        if expiry_override and expiry_override in expiries:
+            expiry = expiry_override
+        else:
+            expiry = next((x for x in expiries if x >= today), expiries[0] if expiries else None)
         if not expiry:
             return {"ok": False, "symbol": sym, "instrument_key": key, "expiry": None, "chain": [], "reason": "No listed option expiry returned"}
         raw = self.get(f"{BASE_V2}/option/chain", params={"instrument_key": key, "expiry_date": expiry}).get("data") or []
@@ -1700,7 +1791,7 @@ class UpstoxService:
                 "pe": {"ltp":safe_float(pm.get("ltp")) or None,"oi":safe_float(pm.get("oi")) or None,"prev_oi":safe_float(pm.get("prev_oi")) or None,"volume":safe_float(pm.get("volume")) or None,"bid":safe_float(pm.get("bid_price")) or None,"ask":safe_float(pm.get("ask_price")) or None,"iv":piv or None,"delta":safe_float(pg.get("delta")) or None,"gamma":safe_float(pg.get("gamma")) or None,"theta":safe_float(pg.get("theta")) or None,"vega":safe_float(pg.get("vega")) or None,"key":p.get("instrument_key")},
             })
         payload={"ok":True,"symbol":sym,"instrument_key":key,"expiry":expiry,"expiries":expiries[:12],"spot":spot or None,"chain":out,"chain_rows":len(out),"source":"Upstox option chain","epoch":time.time(),"read_only":True}
-        self.stock_chain_cache[sym]={"epoch":time.time(),"payload":payload}
+        self.stock_chain_cache[cache_key]={"epoch":time.time(),"payload":payload}
         return payload
 
     # ---------- background lifecycle ----------
@@ -1712,9 +1803,18 @@ class UpstoxService:
         def loop() -> None:
             while not self.stop_event.is_set():
                 if not self.authenticated:
-                    time.sleep(1)
+                    self.stop_event.wait(1.0)
+                    continue
+                # A confirmed 401 is terminal for this token. Do not create reconnect
+                # storms; Render/server env must be corrected and the service restarted.
+                if self.token_invalid:
+                    self.stop_event.wait(30.0)
                     continue
                 try:
+                    if not self.token_validated_at:
+                        # Read-only startup validation. fetch_expiries uses /option/contract
+                        # and will mark HTTP 401 as TOKEN INVALID.
+                        self.fetch_expiries(force=True)
                     if not self.current_expiry:
                         exps = self.fetch_expiries()
                         if exps:
@@ -1732,8 +1832,9 @@ class UpstoxService:
                     sleep_for = 1.0 if self.streamer_connected else 3.0
                 except Exception as exc:
                     with self.lock:
-                        self.streamer_error = str(exc)
-                    sleep_for = 3.0
+                        self.streamer_error = "TOKEN INVALID" if self.token_invalid else str(exc)
+                        self.last_data_error = str(exc)[:300]
+                    sleep_for = 30.0 if self.token_invalid else 3.0
                 self.stop_event.wait(sleep_for)
 
         self.bg_thread = threading.Thread(target=loop, name="upstox-sync", daemon=True)
@@ -1910,9 +2011,13 @@ class UpstoxService:
             series = price_series.get("5") or price_series.get("3") or []
             vwap = statistics.mean(series[-12:]) if series else spot
 
+        status_now = self._data_status(core_present=bool(spot or out or fno_equities or sector_equities))
         return {
             "ok": True,
-            "source": "upstox_websocket_v3" if ws_connected else "upstox_rest_fallback",
+            "source": "upstox_websocket_v3" if status_now["data_status"] == "LIVE" else ("upstox_rest_fallback" if status_now["data_status"] == "REST" else "upstox_cached_or_unavailable"),
+            "data_status": status_now["data_status"],
+            "tick_age_sec": status_now["tick_age_sec"],
+            "rest_age_sec": status_now["rest_age_sec"],
             "active_underlying": self.active_code,
             "active_label": UNDERLYING_CATALOG.get(self.active_code, {}).get("label", self.active_code),
             "spot": spot,
@@ -1975,12 +2080,61 @@ class UpstoxService:
             "analytics_note": self.analytics_note,
         }
 
+    def _data_status(self, core_present: Optional[bool] = None) -> Dict[str, Any]:
+        now = time.time()
+        with self.lock:
+            token_present = bool(self.access_token)
+            invalid = bool(self.token_invalid)
+            last_tick = float(self.last_message_ts or 0.0)
+            last_rest = float(self.last_rest_success_ts or 0.0)
+            ws_connected = bool(self.streamer_connected)
+            err = str(self.last_data_error or self.streamer_error or "")
+            if core_present is None:
+                core_present = bool(self.spot or self.chain or self.fno_equities or self.sector_equities)
+        tick_age = max(0.0, now - last_tick) if last_tick else None
+        rest_age = max(0.0, now - last_rest) if last_rest else None
+        dt = now_ist()
+        market_open = dt.weekday() < 5 and ((dt.hour * 60 + dt.minute) >= 9 * 60 + 15) and ((dt.hour * 60 + dt.minute) <= 15 * 60 + 30)
+        live_max_age = max(8.0, min(20.0, float(self.rest_sync_seconds)))
+        rest_max_age = max(20.0, float(self.rest_sync_seconds) * 2.5)
+
+        if not token_present:
+            state = "OFFLINE"
+        elif invalid:
+            state = "TOKEN INVALID"
+        elif ws_connected and tick_age is not None and tick_age <= live_max_age:
+            state = "LIVE"
+        elif market_open and core_present and rest_age is not None and rest_age <= rest_max_age:
+            state = "REST"
+        elif core_present and ((tick_age is not None) or (rest_age is not None)):
+            state = "STALE"
+        elif err:
+            state = "DATA ERROR"
+        else:
+            state = "WARMING"
+        return {
+            "data_status": state,
+            "tick_age_sec": round(tick_age, 2) if tick_age is not None else None,
+            "rest_age_sec": round(rest_age, 2) if rest_age is not None else None,
+            "market_session_open": market_open,
+        }
+
     def status(self) -> Dict[str, Any]:
+        ds = self._data_status()
         with self.lock:
             return {
                 "authenticated": self.authenticated,
+                "data_status": ds["data_status"],
+                "tick_age_sec": ds["tick_age_sec"],
+                "rest_age_sec": ds["rest_age_sec"],
+                "market_session_open": ds["market_session_open"],
                 "configured_app": self.configured_app,
                 "token_source": self.token_source,
+                "server_token_configured": self.server_token_configured,
+                "manual_token_allowed": not self.server_token_configured,
+                "token_invalid": self.token_invalid,
+                "token_invalid_reason": self.token_invalid_reason if self.token_invalid else "",
+                "token_validated_at": self.token_validated_at or None,
                 "underlying": self.underlying_key,
                 "active_underlying": self.active_code,
                 "active_label": UNDERLYING_CATALOG.get(self.active_code, {}).get("label", self.active_code),

@@ -1,0 +1,9 @@
+POWERHOUSE AI V71.5 — CALL RECOVERY / TIERED SIGNAL OS
+
+- Preserves conservative STRICT master signal gates.
+- Adds separate CONFIRMED / EARLY / WATCH setup tiers so forming opportunities are visible instead of looking dead.
+- EARLY calls require directional fusion, >=55 confidence, >=55 data quality, <=72 trap risk and >=60 contract quality.
+- WATCH calls require weaker but still bounded thresholds; no setup is emitted when data is missing/stale.
+- Opportunity radar now exposes CONFIRMED CALL >=80 quality, EARLY CALL >=72, WATCH CALL >=60.
+- Alert center can surface ARMING early setups in ALL mode while A/A+ mode remains conservative.
+- No execution, no orders, no P&L, no profit guarantee.

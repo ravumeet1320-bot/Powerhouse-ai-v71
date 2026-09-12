@@ -1,0 +1,17 @@
+POWERHOUSE AI V72.1 — FAST SIGNAL + ACCURACY GUARD
+
+Added:
+- Two-stage low-latency signal engine: EARLY and CONFIRMED.
+- CONFIRMED BUY CE/PE requires fresh data + independent aligned evidence groups.
+- Direction-aware momentum/depth/OI/relative-strength/breadth conflict guard.
+- Stale quote, late-entry, opportunity-decay, wide-spread and evidence-conflict blocks.
+- Signal evidence persistence and score-stability guard against one-tick noise.
+- Fast Early / Fast Confirmed command-center counters.
+- Hero deep-scan UI cadence reduced from 20s to 10s.
+- Stock option-chain default cache reduced from 20s to 10s.
+- Recommended full-F&O quote sync 5s and V72 snapshot 5s in .env.example.
+- PWA cache bumped for the new UI/runtime state.
+
+Truth policy:
+- Faster generation does not mean guaranteed accuracy. EARLY is an advance warning; BUY is reserved for CONFIRMED evidence.
+- No broker execution or guaranteed profit/win-rate claim.

@@ -309,28 +309,23 @@ def latest_cross_market(name):
     return dict(r) if r else None
 
 def cross_market_intel(market):
-    # GIFT NIFTY requires a configured/licensed feed. Dow futures can also be supplied through a provider URL.
+    # V71.3 removes the dead Dow/external futures surface. Keep only verified GIFT data
+    # when a legitimate configured or cached source actually exists.
     feeds=[]
-    for name,prefix in [('GIFT NIFTY','GIFT_NIFTY'),('DOW FUTURES','DOW_FUTURES')]:
-        live=_external_from_env(name,prefix)
-        if live and live.get('status')=='LIVE':
-            try:record_cross_market(name,live['price'],live.get('change_pct'),live.get('source','configured'),live.get('verified',False),live.get('epoch'),live)
-            except Exception:pass
-            feeds.append(live)
-        else:
-            cached=latest_cross_market(name)
-            if cached:
-                age=time.time()-cached['epoch']; cached['status']='CACHED'; cached['age_sec']=age; feeds.append(cached)
-            else:
-                feeds.append(live or {'market':name,'status':'UNAVAILABLE','reason':f'Set {prefix}_JSON_URL (and JSON paths) or POST verified data to /api/v62/cross-market/ingest'})
-    nifty=_f(market.get('spot'))
-    out={'markets':feeds,'nifty_spot':nifty,'read_only':True,'truth_policy':'External markets are shown only from configured/cached sources; values are never fabricated.'}
-    gift=next((x for x in feeds if x.get('market')=='GIFT NIFTY'),None); dow=next((x for x in feeds if x.get('market')=='DOW FUTURES'),None)
-    if gift and _f(gift.get('change_pct')) is not None and dow and _f(dow.get('change_pct')) is not None:
-        g=_f(gift['change_pct']); d=_f(dow['change_pct']);
-        out['global_alignment']='RISK-ON ALIGNED' if g>0 and d>0 else ('RISK-OFF ALIGNED' if g<0 and d<0 else 'MIXED GLOBAL CUES')
-    else: out['global_alignment']='INSUFFICIENT VERIFIED DATA'
-    return out
+    name,prefix='GIFT NIFTY','GIFT_NIFTY'
+    live=_external_from_env(name,prefix)
+    if live and live.get('status')=='LIVE':
+        try: record_cross_market(name,live['price'],live.get('change_pct'),live.get('source','configured'),live.get('verified',False),live.get('epoch'),live)
+        except Exception: pass
+        feeds.append(live)
+    else:
+        cached=latest_cross_market(name)
+        if cached:
+            age=time.time()-cached['epoch']; cached['status']='CACHED'; cached['age_sec']=age; feeds.append(cached)
+    return {'markets':[x for x in feeds if _f(x.get('price')) is not None],
+            'nifty_spot':_f(market.get('spot')),'read_only':True,
+            'global_alignment':'SINGLE VERIFIED CUE' if feeds else 'NO VERIFIED EXTERNAL CUE',
+            'truth_policy':'Dead/unconfigured external feeds are omitted rather than rendered as unavailable cards.'}
 
 def readiness(market, modules):
     flags={
@@ -343,7 +338,6 @@ def readiness(market, modules):
       'depth_history':modules['depth_persistence'].get('status')=='READY',
       'cross_market_any':any(x.get('status') in {'LIVE','CACHED'} for x in modules['cross_market'].get('markets',[])),
       'gift_nifty':any(x.get('market')=='GIFT NIFTY' and x.get('status') in {'LIVE','CACHED'} for x in modules['cross_market'].get('markets',[])),
-      'dow_futures':any(x.get('market')=='DOW FUTURES' and x.get('status') in {'LIVE','CACHED'} for x in modules['cross_market'].get('markets',[])),
     }
     ready=sum(flags.values()); total=len(flags)
     return {'checks':flags,'ready':ready,'total':total,'readiness_pct':round(ready/total*100,1)}
@@ -371,7 +365,7 @@ def build_v62(market:dict[str,Any], v60:dict[str,Any]|None=None, v61:dict[str,An
       'automatic_outcome_audit':auto_outcome_audit(),
     }
     return {'version':'62.0','name':'Consolidated Market Intelligence & Global Futures OS','read_only':True,'memory':mem,'modules':modules,'readiness':readiness(market,modules),
-      'implemented_now':['Persistent normalized market time-series','CPR + classic pivots + Camarilla','Gap/opening-drive context','Volume Profile POC/VAH/VAL/HVN/LVN when candles exist','Anchored VWAP from session/swing anchors','Compression/NR7 detector','Option OI/volume PCR + walls + IV skew','PCR/max-pain migration from stored history','Depth persistence and imbalance history','Breadth + sector rotation snapshot','Symbol personality baselines','GIFT NIFTY external-feed adapter/cache','Dow Futures external-feed adapter/cache','Global cue alignment','Multi-timeframe alignment','Regime/noise classification','IV rank/percentile as history accumulates','Futures basis when supplied','Exchange risk guard states','Feed freshness telemetry','Automatic subsequent-move outcome labeling','Provider/source truth states'],
+      'implemented_now':['Persistent normalized market time-series','CPR + classic pivots + Camarilla','Gap/opening-drive context','Volume Profile POC/VAH/VAL/HVN/LVN when candles exist','Anchored VWAP from session/swing anchors','Compression/NR7 detector','Option OI/volume PCR + walls + IV skew','PCR/max-pain migration from stored history','Depth persistence and imbalance history','Breadth + sector rotation snapshot','Symbol personality baselines','GIFT NIFTY external-feed adapter/cache when verified','Working-feed-only global cue state','Multi-timeframe alignment','Regime/noise classification','IV rank/percentile as history accumulates','Futures basis when supplied','Exchange risk guard states','Feed freshness telemetry','Automatic subsequent-move outcome labeling','Provider/source truth states'],
       'external_dependencies':{'gift_nifty':'Requires configured legitimate NSE IX/broker/data-vendor JSON feed or verified ingest; never fabricated.','dow_futures':'Requires configured legitimate futures/data-vendor feed or verified ingest.','licensed_news':'Adapter not auto-connected without provider credentials.','permanent_cloud_db':'Set POWERHOUSE_DB_PATH on persistent disk or migrate SQLite schema to hosted DB.'},
       'truth_policy':['No automatic broker execution.','No guaranteed-profit or win-probability claims.','Unavailable external data remains UNAVAILABLE.','Order-book patterns are evidence only; no spoofing/institution identity claims.']}
 
