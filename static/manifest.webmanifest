@@ -1,13 +1,13 @@
 {
-  "name": "POWERHOUSE AI V71 — Intelligence Chart + Universal Opportunity Radar OS",
-  "short_name": "POWERHOUSE V71",
-  "description": "Read-only universal F&O census, stock-option Hero radar, Intelligence Chart, expiry intelligence, data-truth controls, replay and missed-move audit.",
+  "name": "POWERHOUSE AI V72.2 — Timing + Execution Intelligence",
+  "short_name": "POWERHOUSE V72.2",
+  "description": "Read-only AI Brain 3.2 with trigger countdown, timing/execution intelligence, re-entry, false-breakout protection, expiry gamma mode, ₹50+ Hero options, forensics and replay.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#050b12",
-  "theme_color": "#050b12",
+  "background_color": "#f8f9ff",
+  "theme_color": "#f8f7ff",
   "icons": [
     {
       "src": "/static/icon-192.png",
