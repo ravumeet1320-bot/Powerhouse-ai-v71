@@ -1,0 +1,58 @@
+POWERHOUSE AI V73 LTS — LOCAL VERIFICATION REPORT
+
+Build: 73.0-lts-institutional-intelligence
+Base: V72.2 Full Deploy Ready cumulative source
+
+ACTUAL VALIDATION RUN IN THIS BUILD
+- python -m compileall -q . : PASS
+- node --check static/pro-ui.js : PASS
+- node --check static/v73-lts.js : PASS
+- node --check static/sw.js : PASS
+
+Regression scripts: 27/27 PASS
+1. SELF_TEST_AI.py
+2. TEST_V53.py
+3. TEST_V54.py
+4. TEST_V56.py
+5. TEST_V57.py
+6. TEST_V58.py
+7. TEST_V60.py
+8. TEST_V60_2.py
+9. TEST_V60_3.py
+10. TEST_V61.py
+11. TEST_V62.py
+12. TEST_V63.py
+13. TEST_V64.py
+14. TEST_V65.py
+15. TEST_V66.py
+16. TEST_V67.py
+17. TEST_V68.py
+18. TEST_V70.py
+19. TEST_V71.py
+20. TEST_V71_3.py
+21. TEST_V71_4.py
+22. TEST_V71_5.py
+23. TEST_V72.py
+24. TEST_V72_1.py
+25. TEST_V72_2.py
+26. TEST_V72_2_AUTH_STATUS.py
+27. TEST_V73_LTS.py
+
+TEST_V73_LTS verified locally through FastAPI TestClient:
+- /api/health HTTP 200, version 73.0
+- /api/v73/tabs HTTP 200, exactly 8 locked groups
+- /api/v73/status HTTP 200, version 73.0
+- / HTTP 200 and V73 CSS/JS references present
+- synthetic depth DOM test PASS
+- synthetic pre-circuit detector test PASS
+- synthetic Hero entry/SL/T1/T2/T3/extended-target test PASS
+
+NOT CLAIMED AS VERIFIED HERE
+- Production Render deployment was not performed by this local packaging step.
+- Live Upstox market/auth values were not fabricated or simulated as production data.
+- NSE/Dhan/Screener web pages are not scraped as hard runtime dependencies; circuit detection uses numeric live circuit limits from the authenticated market-data provider when available.
+
+READ-ONLY
+- No broker order placement.
+- No automatic P&L/execution.
+- No secrets bundled in this package.

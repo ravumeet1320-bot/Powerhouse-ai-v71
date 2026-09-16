@@ -47,6 +47,7 @@ from v69_engine import build_v69, depth_intelligence, bulk_block_intelligence  #
 from v70_engine import build_v70, hero_history, all_index_rank  # noqa: E402
 from v71_engine import build_v71, universal_census, stock_option_hero, chart_intelligence as chart_intelligence_v71, missed_move_audit as missed_move_audit_v71  # noqa: E402
 from v72_2_engine import build_v72, pre_move_radar, predictive_strike_selector, predictive_chart_intelligence, lead_time_audit, signal_forensics, replay_timeline  # noqa: E402
+from v73_lts_engine import build_v73, circuit_hunter as circuit_hunter_v73, hero_execution_plan as hero_execution_plan_v73, TAB_ARCHITECTURE as V73_TABS, LOCKED_FEATURES as V73_LOCKED_FEATURES  # noqa: E402
 
 ai_engine = AIFusionEngine()
 
@@ -109,7 +110,7 @@ def _attach_global_markets(svc: UpstoxService, snap: dict) -> dict:
     except Exception as exc:
         snap["upstox_global_markets"] = {"status":"UNAVAILABLE","markets":[],"reason":str(exc)[:140]}
     return snap
-app = FastAPI(title="Powerhouse AI V72.2 — Timing + Execution Intelligence", version="72.2")
+app = FastAPI(title="POWERHOUSE AI V73 LTS — Institutional Intelligence OS", version="73.0")
 start_collector_scheduler()
 
 
@@ -307,6 +308,63 @@ def v72_replay(symbol: str, request: Request, minutes: int = Query(390, ge=30, l
     _=request_service(request)
     sym=re.sub(r"[^A-Za-z0-9&.-]", "", symbol.upper())
     return replay_timeline(sym, minutes)
+
+
+
+# ---------- V73 LTS Institutional Intelligence OS ----------
+@app.get("/api/v73/status")
+def v73_status(request: Request):
+    svc=request_service(request)
+    snap=_attach_global_markets(svc, svc.snapshot() if svc.authenticated else demo_snapshot())
+    return build_v73(snap, record=bool(svc.authenticated and not getattr(svc, "token_invalid", False)))
+
+@app.get("/api/v73/tabs")
+def v73_tabs():
+    return {"version":"73.0","tabs":V73_TABS,"locked_features":V73_LOCKED_FEATURES,"read_only":True}
+
+@app.get("/api/v73/coverage")
+def v73_coverage(request: Request):
+    svc=request_service(request)
+    snap=_attach_global_markets(svc, svc.snapshot() if svc.authenticated else demo_snapshot())
+    out=build_v73(snap, record=False)
+    return {"version":"73.0","coverage":out.get("opportunity_coverage"),"data_quality":out.get("data_quality"),"performance":out.get("performance"),"read_only":True}
+
+@app.get("/api/v73/circuit-hunter")
+def v73_circuit_hunter(request: Request, limit: int = Query(40, ge=1, le=200)):
+    svc=request_service(request)
+    if not svc.authenticated or getattr(svc, "token_invalid", False):
+        raise HTTPException(status_code=401, detail=_auth_detail(svc))
+    return circuit_hunter_v73(svc.snapshot(), limit=limit)
+
+@app.get("/api/v73/alerts")
+def v73_alerts(request: Request):
+    svc=request_service(request)
+    snap=_attach_global_markets(svc, svc.snapshot() if svc.authenticated else demo_snapshot())
+    return build_v73(snap, record=False).get("alerts")
+
+@app.get("/api/v73/hero/{symbol}")
+def v73_hero(symbol: str, request: Request, force: bool = Query(False), interval: int = Query(5, ge=1, le=30), limit: int = Query(120, ge=20, le=240)):
+    svc=request_service(request)
+    if not svc.authenticated or getattr(svc, "token_invalid", False):
+        raise HTTPException(status_code=401, detail=_auth_detail(svc))
+    sym=re.sub(r"[^A-Za-z0-9&.-]", "", symbol.upper())
+    snap=svc.snapshot(); radar=pre_move_radar(snap, record=True)
+    row=next((r for r in (radar.get("rows") or []) if r.get("symbol")==sym),None)
+    if not row:
+        raise HTTPException(status_code=404, detail=f"{sym} is not in the current discovered F&O census")
+    try:
+        chain=svc.stock_option_chain_snapshot(sym, force=force)
+        pack=predictive_strike_selector(sym,row,chain)
+        chart=None
+        try:
+            candles=svc.instrument_candles(sym, interval=interval, limit=limit)
+            chart=predictive_chart_intelligence(candles,sym,interval,snap,row)
+        except Exception:
+            chart=None
+        return {"version":"73.0","symbol":sym,"underlying":row,"strike_intelligence":pack,"chart_context":chart,"execution_plan":hero_execution_plan_v73(sym,row,pack,chart),"read_only":True}
+    except UpstoxError as exc:
+        _raise_upstox(exc)
+
 
 @app.get("/api/v70/status")
 def v70_status(request: Request):
@@ -779,8 +837,10 @@ def health(request: Request):
     svc = request_service(request)
     return {
         "ok": True,
-        "app": "Powerhouse AI V72.2",
-        "version": "72.2",
+        "app": "POWERHOUSE AI V73 LTS",
+        "version": "73.0",
+        "lts": True,
+        "v72_2_compatibility": True,
         "universal_opportunity_radar": True,
         "intelligence_chart": True,
         "expiry_precision_hero": True,
@@ -1121,7 +1181,7 @@ if __name__ == "__main__":
 
     host = os.getenv("UPSTOX_HOST") or os.getenv("HOST") or "0.0.0.0"
     port = int(os.getenv("UPSTOX_PORT") or os.getenv("PORT") or "8787")
-    print(f"Powerhouse AI V72.2 running at http://{host}:{port}")
+    print(f"POWERHOUSE AI V73 LTS running at http://{host}:{port}")
     uvicorn.run("app:app", host=host, port=port, reload=False)
 
 

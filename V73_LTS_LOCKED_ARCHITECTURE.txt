@@ -1,0 +1,28 @@
+POWERHOUSE AI V73 LTS — LOCKED FINAL ARCHITECTURE
+
+MAIN GROUPS (LOCKED)
+1. HOME — Command Center
+2. OPPORTUNITIES — Hero / Pre-Move / Circuit Hunter / Scanners / Watchlist
+3. EXECUTION — Execution Plan / Live Thesis / Chart / Dynamic Targets / Re-entry / Alerts
+4. MARKET — Trend / Heatmap / Sectors / Breadth / Global / Events
+5. DERIVATIVES — Options / OI / Futures / Greeks / Expiry Intelligence
+6. MONEY FLOW — Volume Pulse / Depth DOM / Smart Money / Institutional Flow
+7. INTELLIGENCE — Regime / Scenario / Leader-Follower / Relative Strength / Risk / Data Quality
+8. LAB & SYSTEM — Replay / Forensics / Missed Moves / False Signals / Shadow / System Health
+
+LOCKED OPERATING PRINCIPLE
+DATA TRUTH → MARKET STATE → REGIME → EARLY OPPORTUNITY → CONFLICT CHECK → HERO →
+ENTRY → RISK → DYNAMIC TARGET → RUNNER/EXIT → FORENSICS → BOUNDED CALIBRATION.
+
+ZERO-MISS OBJECTIVE
+See everything, reject nothing too early, track acceleration, re-scan continuously,
+promote only evidence-supported setups, recover second-chance entries and audit misses.
+This is an optimization objective, not a promise that every profitable trade can be known in advance.
+
+FINAL UI
+- POWER LIGHT: premium light pastel/rainbow glass interface.
+- POWER DARK: high-contrast institutional workstation.
+- Large readable typography; no dark-on-dark legacy headings.
+- Mobile priority: Home / Hero / Pre-Move / Circuit / More.
+
+NO ARCHITECTURE CHANGES unless explicitly requested by the owner.

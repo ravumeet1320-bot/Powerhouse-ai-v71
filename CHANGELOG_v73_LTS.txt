@@ -1,0 +1,44 @@
+POWERHOUSE AI V73 LTS — FINAL LOCKED UPGRADE
+Release: 73.0-lts-institutional-intelligence
+
+This is an additive cumulative upgrade over the verified V72.2 build. It preserves the
+V71/V72.2 signal stack and adds the locked V73 LTS orchestration layer.
+
+IMPLEMENTED IN THIS PACKAGE
+- V73 LTS unified status/API layer; V72.2 compatibility preserved.
+- Final 8-group product information architecture exposed by /api/v73/tabs.
+- Dual LIGHT/DARK PRO UI, larger typography and readable legacy cards.
+- Desktop grouped navigation rail + mobile Home/Hero/Pre-Move/Circuit/More navigation.
+- V73 live drawer for coverage, zero-miss queue, pre-circuit candidates and final groups.
+- Opportunity Coverage Sentinel with freshness/depth/OI/circuit readiness.
+- Candidate memory, score acceleration and resurrection telemetry.
+- Circuit Hunter using numeric live upper-circuit limits only.
+- Full Market Quote V3 top-5 depth retention including order counts when supplied.
+- Upper/lower circuit, reference-price and CAS fields retained from Full Market Quote V3.
+- WebSocket aggregate buy/sell quantity retention when supplied.
+- Faster default F&O REST quote refresh (5 s floor) while keeping WebSocket event-driven feeds.
+- Volume Pulse + Depth DOM intelligence.
+- V73 Hero Execution Plan: entry zone, ideal entry, do-not-chase, premium SL,
+  underlying invalidation, T1/T2/T3, conditional extended target, reachability,
+  time stop, runner/re-entry policy.
+- Target expansion strength uses OI flow + premium response + liquidity + gamma +
+  underlying score + side-aligned depth, with chart context when available.
+- P0/P1/P2/P3 alert orchestration with duplicate suppression.
+- Data-quality gate and zero-fake-data policy.
+- PWA service-worker cache bump to V73 LTS.
+
+LOCKED PRODUCT BASELINE
+Home / Opportunities / Execution / Market / Derivatives / Money Flow /
+Intelligence / Lab & System.
+
+All previously agreed engines remain part of the locked architecture: Hero, Pre-Move,
+Circuit Hunter, Volume, Depth, OI/PCR, Smart Money, Institutional Flow, sector/breadth,
+leader-follower, regime/risk, dynamic targets, FastPath, alerts, replay/forensics,
+missed-move auditing, shadow/challenger design, coverage monitoring and read-only truth rules.
+
+IMPORTANT TRUTH / SAFETY
+- No automatic broker order placement.
+- No guaranteed-return or 100% trade-capture claim.
+- No stale/unavailable values presented as LIVE.
+- No anonymous order-flow activity labelled FII/DII without attributable source data.
+- Missing external/global feeds are hidden or marked unavailable rather than fabricated.

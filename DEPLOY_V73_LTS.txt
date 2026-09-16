@@ -1,0 +1,52 @@
+POWERHOUSE AI V73 LTS — LIVE DEPLOY STEPS
+Target repo: ravumeet1320-bot/Powerhouse-ai-v71
+Branch: main
+Render service: Powerhouse-ai-v71
+Existing production URL must remain unchanged.
+
+METHOD A — GitHub WEB (simplest if connector write access is unavailable)
+1. Download this ZIP and extract it.
+2. Open GitHub repo ravumeet1320-bot/Powerhouse-ai-v71 → branch main.
+3. Back up the current main commit SHA for rollback.
+4. Upload the CONTENTS of POWERHOUSE_AI_V73_LTS_FINAL/ into the repository root.
+   Do not upload the outer folder as a nested project.
+5. Choose "Commit directly to main" with message:
+   POWERHOUSE AI V73 LTS final locked upgrade
+6. Do NOT upload a real .env or any token/secret. .env.example is safe.
+7. Render auto-deploy is OFF for this service in the previously inspected setup, so open
+   Render → Powerhouse-ai-v71 → Manual Deploy → Deploy latest commit.
+8. Wait until deployment status becomes LIVE.
+
+METHOD B — GIT CLI
+1. git clone https://github.com/ravumeet1320-bot/Powerhouse-ai-v71.git
+2. cd Powerhouse-ai-v71
+3. git rev-parse HEAD   # save rollback SHA
+4. Copy all files from POWERHOUSE_AI_V73_LTS_FINAL/ into this repo root, preserving repo-only files.
+5. git status
+6. git add app.py upstox_service.py v73_lts_engine.py TEST_V73_LTS.py static/index.html static/pro-ui.css static/pro-ui.js static/v73-lts.css static/v73-lts.js static/sw.js static/manifest.webmanifest CHANGELOG_v73_LTS.txt V73_LTS_LOCKED_ARCHITECTURE.txt DEPLOY_V73_LTS.txt README_V73_LTS.md
+7. git commit -m "POWERHOUSE AI V73 LTS final locked upgrade"
+8. git push origin main
+9. In Render, Manual Deploy → Deploy latest commit.
+
+RENDER
+Build command: pip install -r requirements.txt
+Start command: uvicorn app:app --host 0.0.0.0 --port $PORT
+Keep UPSTOX_ACCESS_TOKEN and all secrets only in Render Environment.
+Recommended env (optional): UPSTOX_FNO_QUOTE_SYNC_SECONDS=5
+
+POST-DEPLOY VERIFICATION
+- GET /api/health → 200 and version 73.0
+- GET /api/v73/status → 200 and version 73.0
+- GET /api/v73/tabs → 200 and exactly 8 locked groups
+- GET /api/v72/status → 200 and version 72.2 compatibility
+- GET / → 200
+- GET /static/v73-lts.css → 200
+- GET /static/v73-lts.js → 200
+- GET /sw.js → 200
+- With authenticated Upstox: GET /api/v73/coverage → 200
+- With authenticated Upstox: GET /api/v73/circuit-hunter → 200
+- With authenticated Upstox: GET /api/v73/hero/TATASTEEL → 200 only if TATASTEEL is in current F&O census; otherwise use a current census symbol.
+
+ROLLBACK
+If build/startup fails, redeploy the saved pre-upgrade GitHub commit SHA in Render or reset main to it.
+Do not leave production on a broken deployment.

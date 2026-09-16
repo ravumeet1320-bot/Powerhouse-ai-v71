@@ -186,7 +186,7 @@ class UpstoxService:
         self.fno_universe_ready = False
         self.fno_universe_error = ""
         self.fno_last_quote_sync = 0.0
-        self.fno_quote_sync_seconds = max(5, int(os.getenv("UPSTOX_FNO_QUOTE_SYNC_SECONDS", "10")))
+        self.fno_quote_sync_seconds = max(5, int(os.getenv("UPSTOX_FNO_QUOTE_SYNC_SECONDS", "5")))
         self.fno_baselines: Dict[str, Dict[str, Any]] = {}
         self.fno_last_baseline_sync = 0.0
         self.fno_baseline_sync_seconds = max(2, int(os.getenv("UPSTOX_FNO_BASELINE_SYNC_SECONDS", "4")))
@@ -804,6 +804,16 @@ class UpstoxService:
                 ask = safe_float((sells[0] or {}).get("price")) if sells else 0.0
                 bq = safe_float((buys[0] or {}).get("quantity")) if buys else 0.0
                 aq = safe_float((sells[0] or {}).get("quantity")) if sells else 0.0
+                depth_levels=[]
+                for i in range(max(len(buys),len(sells),0)):
+                    b=(buys[i] if i < len(buys) else {}) or {}; a=(sells[i] if i < len(sells) else {}) or {}
+                    level={
+                        "bid": safe_float(b.get("price")) or None, "bid_qty": safe_float(b.get("quantity")) or None,
+                        "bid_orders": int(safe_float(b.get("orders"),0) or 0) or None,
+                        "ask": safe_float(a.get("price")) or None, "ask_qty": safe_float(a.get("quantity")) or None,
+                        "ask_orders": int(safe_float(a.get("orders"),0) or 0) or None,
+                    }
+                    if any(v is not None for v in level.values()): depth_levels.append(level)
                 row.update({
                     "ltp": ltp or row.get("ltp") or 0.0, "cp": cp or row.get("cp") or 0.0,
                     "change_pct": pct_change(ltp, cp) if ltp and cp else None,
@@ -812,8 +822,16 @@ class UpstoxService:
                     "day_low": safe_float(ohlc.get("low")) or None, "high_52w": safe_float(q.get("year_high")) or None,
                     "low_52w": safe_float(q.get("year_low")) or None, "atp": safe_float(q.get("average_price")) or None,
                     "bid": bid or None, "ask": ask or None, "bid_qty": bq or None, "ask_qty": aq or None,
+                    "depth_levels": depth_levels or row.get("depth_levels") or [],
                     "total_buy_qty": safe_float(q.get("total_buy_quantity")) or None,
                     "total_sell_qty": safe_float(q.get("total_sell_quantity")) or None,
+                    "lower_circuit_limit": safe_float(q.get("lower_circuit_limit")) or None,
+                    "upper_circuit_limit": safe_float(q.get("upper_circuit_limit")) or None,
+                    "reference_price": safe_float(q.get("reference_price")) or None,
+                    "indicative_equilibrium_price": safe_float(q.get("indicative_equilibrium_price")) or None,
+                    "indicative_equilibrium_quantity": safe_float(q.get("indicative_equilibrium_quantity")) or None,
+                    "indicative_imbalance_quantity_total": safe_float(q.get("indicative_imbalance_quantity_total")) or None,
+                    "cas_eligible": q.get("cas_eligible"),
                     "live": bool(ltp and cp), "quote_epoch": now,
                 })
                 oi = safe_float(fq.get("oi")); prev_oi = safe_float(fq.get("previous_oi"))
@@ -1436,6 +1454,11 @@ class UpstoxService:
                     atp = safe_float(root.get("atp"))
                     if atp:
                         h["atp"] = atp
+                    tbq = safe_float(root.get("tbq")); tsq = safe_float(root.get("tsq"))
+                    if tbq is not None: h["total_buy_qty"] = tbq
+                    if tsq is not None: h["total_sell_qty"] = tsq
+                    rp = safe_float(root.get("rp"))
+                    if rp is not None: h["reference_price"] = rp
                     quotes = ((root.get("marketLevel") or {}).get("bidAskQuote") or [])
                     if quotes:
                         norm=[]
