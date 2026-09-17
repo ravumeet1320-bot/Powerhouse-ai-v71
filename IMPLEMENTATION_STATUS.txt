@@ -1,0 +1,36 @@
+POWERHOUSE AI V74.3 — FINAL SOFTWARE IMPLEMENTATION STATUS
+
+This package is a working cumulative software build, not a concept-image package.
+
+Implemented and wired in the production UI:
+- COMMAND terminal with 4 index cards: NIFTY, BANKNIFTY, MIDCPNIFTY, SENSEX
+- explicit BULLISH / BEARISH / MIXED market mood and breadth
+- POWERHOUSE BRAIN best-opportunity/evidence panel
+- Chart Pro with live provider candles and Volume/OI, RSI, MACD panes
+- Support/Resistance + Supply/Demand + Level Attack panels
+- Order-book / depth evidence and liquidity pressure
+- Option Chain and OI / Greeks panels
+- Smart Money and FII/DII footprint views
+- Sector Heatwave / Sector rotation views
+- Auto Trender 3.0
+- Circuit Hunter
+- Ultra Calls / Index Calls / Expiry Hero workspaces
+- Ultra Derivatives / OI Walls / Depth-DOM workspaces
+- Alerts, Watchlist, Accuracy, Replay, Audit, System
+- Dark / Light / System theme persistence
+- responsive mobile layout + sticky bottom mobile navigation
+- local persistent watchlist
+- Feature Manifest + Regression Guard API
+- Persistent Market Memory API (PostgreSQL primary when DATABASE_URL is configured; SQLite fallback)
+- immutable CALL_SNAPSHOT memory writes from V74.3 decision qualification
+- scanner/system memory events
+- Ultra Accuracy TAKE/SKIP/INSUFFICIENT_DATA gate and Safe Mode retained
+- no broker order placement
+
+Truth/data rules:
+- Production UI does not substitute demo values when a live field is unavailable.
+- Missing provider evidence is shown as N/A / WAIT / unavailable.
+- FII/DII identity is not inferred for a stock/strike unless the underlying source explicitly attributes it.
+- Scores are evidence/quality measures; they are not guaranteed profit probabilities.
+- Expiry Hero can return WAIT / NO HERO rather than force a trade.
+- No 100% accuracy claim is made. Accuracy is empirical from resolved calls.

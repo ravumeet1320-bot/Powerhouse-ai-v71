@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-"""Compatibility bridge: Render may still start uvicorn v74_app:app.
-This file intentionally exposes the V74.3 application while the preserved V74.2
-wrapper lives in v742_app.py for backwards-compatible imports.
+"""Compatibility bridge for POWERHOUSE AI V74.3.
+
+Render may continue to start ``uvicorn v74_app:app``. Configure the complete
+India index command set before importing V74.3 so NIFTY, BANKNIFTY,
+MIDCPNIFTY and SENSEX are first-class defaults while preserving legacy APIs.
 """
 
-from v743_app import app  # noqa: F401
+import os
 
+os.environ.setdefault("V74_AUTO_INDEX_CODES", "NIFTY,BANKNIFTY,MIDCPNIFTY,SENSEX")
+
+from v743_app import app  # noqa: E402,F401

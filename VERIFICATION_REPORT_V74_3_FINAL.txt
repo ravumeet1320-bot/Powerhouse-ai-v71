@@ -1,0 +1,18 @@
+POWERHOUSE AI V74.3 FINAL — VERIFICATION REPORT
+
+Build checks performed:
+1. Python syntax compile: PASS (v743_app.py, v743_memory.py)
+2. JavaScript syntax check with node --check: PASS
+3. FastAPI import through v74_app bridge: PASS
+4. Root UI route /: 200 PASS
+5. /api/health: 200 PASS
+6. /api/v74.3/feature-manifest: 200 PASS
+7. /api/v74.3/memory/status: 200 PASS
+8. Existing TEST_V74_3_PRECISION.py: PASS
+9. Existing TEST_V74_2_CALLS.py: PASS
+10. Read-only policy retained: broker execution disabled
+
+Notes:
+- Live market values require valid Upstox authentication and the configured provider feed.
+- PostgreSQL memory durability requires DATABASE_URL. SQLite fallback is zero-config but may be ephemeral on hosts without persistent disk.
+- Closed-app Web Push requires VAPID environment variables as documented in the existing build.

@@ -21,6 +21,7 @@ from pydantic import BaseModel
 import v742_app as base
 import v74_engine as eng
 import v743_precision as precision
+import v743_memory as memory
 
 VERSION = precision.VERSION
 RELEASE = precision.RELEASE
@@ -72,6 +73,33 @@ def _v743_call_engine_plan(symbol: str, underlying: dict, strike_pack: dict, cha
     plan = _ORIGINAL_CALL_ENGINE_PLAN(symbol, enriched, strike_pack, chart, now_epoch=now_epoch)
     safe = precision.safe_mode()
     out = precision.apply_precision_gate(enriched, plan, strike_pack, chart, now_epoch=now_epoch)
+    try:
+        memory.MEMORY.record(
+            "CALL_SNAPSHOT",
+            {
+                "action": out.get("action"),
+                "status": out.get("status"),
+                "meta_label": out.get("meta_label"),
+                "meta_score": out.get("meta_score"),
+                "entry_zone": out.get("entry_zone"),
+                "sl": out.get("sl"),
+                "structural_sl": out.get("structural_sl"),
+                "targets": out.get("targets"),
+                "stage": out.get("stage"),
+                "ultra_accuracy": out.get("ultra_accuracy"),
+                "underlying_snapshot": enriched,
+                "strike_winner": (strike_pack or {}).get("winner"),
+                "chart_context": chart or {},
+            },
+            symbol=symbol,
+            scope_key=f"CALL:{symbol}",
+            event_key=str(out.get("decision_id") or out.get("model_call_id") or f"{symbol}:{int(now_epoch or time.time())}"),
+            source="V74.3 CALL ENGINE",
+            config_hash=precision.CONFIG_HASH,
+            epoch=now_epoch,
+        )
+    except Exception:
+        pass
     if safe.get("enabled") and out.get("action") in ("BUY CE", "BUY PE"):
         out["candidate_action"] = out.get("action")
         out["action"] = "WAIT"
@@ -117,6 +145,16 @@ def _v743_store_result(out: dict, scan_ms: float) -> None:
     _ORIGINAL_STORE_RESULT(out, scan_ms)
     try:
         precision.observe_scanner(base._background_meta())
+    except Exception:
+        pass
+    try:
+        cov=(out or {}).get("coverage") or {}
+        memory.MEMORY.record(
+            "SYSTEM",
+            {"scan_ms": scan_ms, "coverage": cov, "data_status": (out or {}).get("data_status")},
+            scope_key="SCANNER", event_key=f"scan:{int(time.time())}", source="V74 CONTINUOUS SCANNER",
+            config_hash=precision.CONFIG_HASH,
+        )
     except Exception:
         pass
 
@@ -236,6 +274,8 @@ def v743_sla(request: Request):
         "safe_mode":precision.safe_mode(),
         "storage":precision.STORE.status(),
         "push":precision.push_config(),
+        "memory":memory.MEMORY.summary(),
+        "feature_manifest":_feature_manifest_payload(),
         "read_only":True,
     }
 
@@ -243,6 +283,68 @@ def v743_sla(request: Request):
 @app.get("/api/v74.3/config")
 def v743_config():
     return {"version":VERSION,"release":RELEASE,"config":precision.CFG,"config_hash":precision.CONFIG_HASH,"read_only":True}
+
+
+FEATURE_MANIFEST = [
+    "COMMAND", "INDEX CALLS", "MARKET", "SMART MONEY", "FII/DII", "HEATWAVE",
+    "SECTORS", "AUTO TRENDER", "CIRCUITS", "ULTRA CALLS", "CHART PRO",
+    "ULTRA DERIVATIVES", "OPTION CHAIN", "OI WALLS", "DEPTH/DOM", "EXPIRY HERO",
+    "ALERTS", "WATCHLIST", "ACCURACY", "REPLAY", "AUDIT", "SYSTEM",
+    "LEVEL MEMORY", "SYMBOL DNA MEMORY", "INDEX DNA MEMORY", "EXPIRY MEMORY",
+    "OI WALL MEMORY", "SMART MONEY MEMORY", "SECTOR ROTATION MEMORY", "SETUP MEMORY",
+    "FAILURE MEMORY", "MISSED MOVE MEMORY", "REGIME MEMORY", "TIME-OF-DAY MEMORY",
+    "STRIKE MEMORY", "PATTERN MEMORY", "CALIBRATION MEMORY", "VERSION MEMORY",
+    "DATA QUALITY MEMORY", "RE-ENTRY MEMORY", "TRAP MEMORY", "SCENARIO ENGINE",
+    "SIGNAL DECAY", "CONFLICT RESOLVER", "OPPORTUNITY RANKING", "MARKET REPLAY LAB",
+    "REGRESSION GUARD", "FEATURE MANIFEST", "EVENT GUARD", "VOLATILITY REGIME",
+    "CORRELATION GUARD", "EXECUTION REALITY", "CALL LIFECYCLE", "DATA PROVENANCE",
+    "FEED GAP DETECTOR", "OPENING BRAIN", "CLOSING BRAIN", "EMERGENCY SAFE MODE",
+]
+
+
+def _feature_manifest_payload() -> dict:
+    ui = V743_UI.read_text(errors="ignore") if V743_UI.exists() else ""
+    ui_present = {name: (name in ui) for name in FEATURE_MANIFEST[:22]}
+    backend_checks = {
+        "continuous_scanner": callable(getattr(base, "_background_meta", None)),
+        "call_engine": callable(getattr(base, "call_engine_plan", None)),
+        "chart": callable(getattr(base, "predictive_chart_intelligence", None)),
+        "strike_selector": callable(getattr(base, "predictive_strike_selector", None)),
+        "alerts": callable(getattr(eng, "alert_snapshot", None)),
+        "memory": memory.MEMORY is not None,
+        "precision": precision.STORE is not None,
+    }
+    return {
+        "version": VERSION,
+        "release": RELEASE,
+        "required_features": FEATURE_MANIFEST,
+        "ui_modules": ui_present,
+        "ui_loaded": sum(1 for x in ui_present.values() if x),
+        "ui_required": len(ui_present),
+        "backend_checks": backend_checks,
+        "backend_ready": all(backend_checks.values()),
+        "regression_guard": "PASS" if all(ui_present.values()) and all(backend_checks.values()) else "ATTENTION",
+        "read_only": True,
+    }
+
+
+@app.get("/api/v74.3/feature-manifest")
+def v743_feature_manifest():
+    return _feature_manifest_payload()
+
+
+@app.get("/api/v74.3/memory/status")
+def v743_memory_status():
+    return {"version": VERSION, "memory": memory.MEMORY.summary(), "read_only": True}
+
+
+@app.get("/api/v74.3/memory/recent")
+def v743_memory_recent(
+    limit: int = Query(100, ge=1, le=1000),
+    symbol: Optional[str] = Query(None),
+    memory_type: Optional[str] = Query(None),
+):
+    return {"version": VERSION, **memory.MEMORY.recent(limit=limit, symbol=symbol, memory_type=memory_type), "read_only": True}
 
 
 class PushSubscription(BaseModel):
@@ -277,6 +379,7 @@ def v743_push_unsubscribe(payload: PushUnsubscribe):
 def _start_v743_services():
     precision.start_push_worker()
     precision.heartbeat("V743_RUNTIME","GREEN",release=RELEASE,config_hash=precision.CONFIG_HASH)
+    memory.MEMORY.record("VERSION", {"release": RELEASE, "version": VERSION}, scope_key="RUNTIME", event_key=f"startup:{int(time.time())}", source="V74.3 STARTUP", config_hash=precision.CONFIG_HASH)
 
 
 @app.on_event("shutdown")
