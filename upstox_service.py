@@ -1781,15 +1781,32 @@ class UpstoxService:
         cached = self.stock_chain_cache.get(cache_key) or {}
         if cached and not force and time.time() - safe_float(cached.get("epoch")) < self.stock_chain_ttl_seconds:
             return dict(cached.get("payload") or {})
-        if not self.fno_universe_ready:
-            self.discover_full_fno_universe()
-        row = next((x for x in self.fno_equities.values() if str(x.get("symbol") or "").upper() == sym), None)
-        key = str((row or {}).get("instrument_key") or "")
+        # Index symbols must resolve to official index instrument keys first.
+        # Without this guard, generic F&O/equity discovery can match an ETF/fund
+        # named NIFTY and return an NSE_EQ key, which has no listed index options.
+        index_aliases = {
+            "NIFTY": "NIFTY",
+            "NIFTY50": "NIFTY",
+            "BANKNIFTY": "BANKNIFTY",
+            "BANK NIFTY": "BANKNIFTY",
+            "MIDCPNIFTY": "MIDCPNIFTY",
+            "NIFTY MID SELECT": "MIDCPNIFTY",
+            "SENSEX": "SENSEX",
+        }
+        index_code = index_aliases.get(sym)
+        row = None
+        if index_code:
+            key = self.resolve_underlying_key(index_code)
+        else:
+            if not self.fno_universe_ready:
+                self.discover_full_fno_universe()
+            row = next((x for x in self.fno_equities.values() if str(x.get("symbol") or "").upper() == sym), None)
+            key = str((row or {}).get("instrument_key") or "")
+            if not key:
+                eq = self._search_equity(sym)
+                key = str((eq or {}).get("instrument_key") or "")
         if not key:
-            eq = self._search_equity(sym)
-            key = str((eq or {}).get("instrument_key") or "")
-        if not key:
-            raise UpstoxError(f"NSE F&O underlying not found for {sym}")
+            raise UpstoxError(f"F&O underlying not found for {sym}")
         contracts = self.get(f"{BASE_V2}/option/contract", params={"instrument_key": key}).get("data") or []
         today = now_ist().date().isoformat()
         expiries = sorted({str(x.get("expiry")) for x in contracts if x.get("expiry")})
@@ -1800,7 +1817,10 @@ class UpstoxService:
         if not expiry:
             return {"ok": False, "symbol": sym, "instrument_key": key, "expiry": None, "chain": [], "reason": "No listed option expiry returned"}
         raw = self.get(f"{BASE_V2}/option/chain", params={"instrument_key": key, "expiry_date": expiry}).get("data") or []
-        out=[]; spot=safe_float(raw[0].get("underlying_spot_price")) if raw else safe_float((row or {}).get("ltp"))
+        spot = safe_float(raw[0].get("underlying_spot_price")) if raw else safe_float((row or {}).get("ltp"))
+        if not spot and index_code:
+            spot = safe_float((self.index_levels.get(index_code) or {}).get("ltp"))
+        out=[]
         for item in raw:
             strike=safe_float(item.get("strike_price"))
             if not strike:
