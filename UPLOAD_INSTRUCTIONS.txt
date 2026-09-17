@@ -1,0 +1,14 @@
+POWERHOUSE AI V74 — UPLOAD ONLY
+
+Upload/replace these exact paths in the repo root:
+1. v74_engine.py             NEW
+2. v74_app.py                NEW
+3. static/v74.html           NEW
+4. render.yaml               REPLACE existing
+5. Dockerfile                REPLACE existing
+
+Do NOT delete existing V72/V73 files.
+Do NOT upload .env, tokens, runtime caches or broker credentials.
+After upload, Render must start: uvicorn v74_app:app --host 0.0.0.0 --port $PORT
+
+Optional validation file TEST_V74.py is not required in production.
