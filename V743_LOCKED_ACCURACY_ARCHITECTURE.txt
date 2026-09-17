@@ -1,0 +1,16 @@
+POWERHOUSE AI V74.3 LOCKED ACCURACY ARCHITECTURE
+
+MISSION
+Maximize execution-adjusted precision subject to measured actionable-move coverage.
+
+LOCKED PRINCIPLES
+1. Discovery may be aggressive. Actionable calls are conservative.
+2. WAIT / SKIP / INSUFFICIENT_DATA / DO NOT CHASE are valid successful outputs.
+3. No guaranteed win-rate or fixed accuracy percentage.
+4. No automatic broker order placement.
+5. Missing/stale evidence is visible and may block a call; never fabricate LIVE evidence.
+6. Every actionable call is tied to immutable decision/config hashes.
+7. Accuracy is measured only from resolved live/shadow outcomes with sample size shown.
+8. Production threshold changes require versioned config; no silent self-modification.
+9. Global-market context is intentionally excluded; focus is Indian NSE/BSE + Upstox-native evidence.
+10. V74.3 promotion is evidence-based via champion/challenger shadow metrics, not version number.

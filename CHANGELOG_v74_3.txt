@@ -1,0 +1,22 @@
+POWERHOUSE AI V74.3 — PRO ULTRA ACCURACY
+
+Accuracy-first additive upgrade over V74.2.
+
+Implemented:
+- Ultra Accuracy meta-label TAKE / SKIP / INSUFFICIENT_DATA gate.
+- Independent scout disagreement + evidence-agreement penalty.
+- Instrument-aware scout coverage threshold (index vs stock F&O).
+- Stricter freshness, liquidity, spread, R:R, late-entry and premium-response gates.
+- Discovery remains broad; only TAKE can become actionable BUY CE/BUY PE.
+- Immutable decision snapshots with SHA-256 snapshot/config hashes.
+- PostgreSQL production store when DATABASE_URL is configured; SQLite fallback.
+- Fail-closed READY suppression when precision snapshot persistence fails.
+- Call retraction event when a previous TAKE deteriorates to SKIP.
+- Empirical calibration withheld until minimum resolved live sample exists.
+- Accuracy API with transparent resolved TAKE metrics.
+- Scanner/call/store/push subsystem heartbeats + Safe Mode surface.
+- Closed-app Web Push pipeline (Service Worker + VAPID + subscription persistence).
+- New V74.3 precision dashboard; existing V74/V73/V72 APIs preserved.
+- No automatic broker orders. No fixed/guaranteed accuracy claim.
+
+Deployment entrypoint: uvicorn v743_app:app
