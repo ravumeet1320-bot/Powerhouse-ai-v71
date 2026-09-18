@@ -1,0 +1,13 @@
+POWERHOUSE AI V74.3 FINAL LOCKED
+
+For an existing V74.3 GitHub repo, upload/replace these files from the Upload-Only ZIP:
+1. v743_app.py
+2. v74_app.py
+3. static/v743.html
+4. static/sw.js
+5. static/manifest.webmanifest
+
+Optional verification/docs in the ZIP can also be uploaded.
+
+Render start command remains:
+uvicorn v74_app:app --host 0.0.0.0 --port $PORT

@@ -1,0 +1,15 @@
+POWERHOUSE AI V74.3 FINAL LOCKED — VERIFICATION
+
+Required validations:
+[PASS] Python compile: v743_app.py and cumulative Python source
+[PASS] JavaScript syntax: static/v743.html embedded application script
+[PASS] FastAPI root serves final UI
+[PASS] Feature Manifest: 24/24 core UI modules
+[PASS] Regression Guard: PASS
+[PASS] Truth checks: no demo-market marker, index-only calls, separate Heatwave/Sectors, real indicator calculation, Level War Room, OI-change columns
+[PASS] V74.3 precision unit tests
+[PASS] V74.2 call-engine compatibility tests
+[PASS] Dedicated final intelligence route registered
+[PASS] Index command route registered
+
+Live-market values still depend on valid provider authentication, exchange session state and provider availability. Outside market hours the correct state may be STALE/N/A/WAIT.

@@ -8,11 +8,13 @@ Ultra Accuracy meta-label gate before a new model call can become READY.
 """
 
 import copy
+import math
 import os
+import statistics
 import threading
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import HTTPException, Query, Request
 from fastapi.responses import FileResponse
@@ -228,6 +230,311 @@ def v743_status(request: Request):
     }
 
 
+@app.get("/api/v74.3/index-command")
+def v743_index_command(request: Request):
+    """Index-only command board. Never mixes equity symbols into index calls."""
+    svc = base.request_service(request)
+    if not svc.authenticated or getattr(svc, "token_invalid", False):
+        raise HTTPException(status_code=401, detail=base._auth_detail(svc))
+    try:
+        provider_status = svc.status() or {}
+    except Exception:
+        provider_status = {}
+    auto = copy.deepcopy(base._V74_AUTO_CALLS)
+    auto_rows = list(auto.get("results") or [])
+    out = []
+    for symbol in ("NIFTY", "BANKNIFTY", "MIDCPNIFTY", "SENSEX"):
+        try:
+            underlying = base._index_underlying_row(svc, symbol) or {}
+        except Exception:
+            underlying = {}
+        snap = underlying.get("index_snapshot") or {}
+        auto_row = next((r for r in auto_rows if str(r.get("symbol") or "").upper() == symbol), None) or {}
+        call = copy.deepcopy(auto_row.get("call") or {})
+        if not call:
+            call = {
+                "action": "WAIT", "meta_label": "SKIP", "status": "WAIT",
+                "strike": None, "entry_zone": {}, "sl": None, "structural_sl": None,
+                "targets": {}, "meta_score": None,
+            }
+        out.append({
+            "symbol": symbol,
+            "label": (snap.get("active_label") or symbol),
+            "ltp": underlying.get("ltp"),
+            "change_pct": underlying.get("change_pct"),
+            "side": underlying.get("side"),
+            "stage": underlying.get("stage"),
+            "score": underlying.get("score"),
+            "source": underlying.get("source"),
+            "data_status": provider_status.get("data_status") or underlying.get("data_status"),
+            "tick_age_sec": provider_status.get("tick_age_sec"),
+            "rest_age_sec": provider_status.get("rest_age_sec"),
+            "expiry": snap.get("expiry"),
+            "price_series": copy.deepcopy(snap.get("price_series") or {}),
+            "session_context": copy.deepcopy(snap.get("session_context") or {}),
+            "call": call,
+            "read_only": True,
+        })
+    return {
+        "version": VERSION, "release": RELEASE, "results": out,
+        "policy": "Index Calls contains NIFTY, BANKNIFTY, MIDCPNIFTY and SENSEX only. Missing data remains N/A/WAIT.",
+        "read_only": True, "execution_enabled": False,
+    }
+
+
+def _vf(v: Any, default: Optional[float] = None) -> Optional[float]:
+    try:
+        if v is None or v == "":
+            return default
+        x = float(v)
+        return x if math.isfinite(x) else default
+    except Exception:
+        return default
+
+
+def _clamp100(v: Any) -> float:
+    x = _vf(v, 0.0) or 0.0
+    return max(0.0, min(100.0, x))
+
+
+def _norm_candles(candles: list[Any]) -> list[dict]:
+    out=[]
+    for c in candles or []:
+        if isinstance(c, dict):
+            o,h,l,cl=_vf(c.get("open") or c.get("o")),_vf(c.get("high") or c.get("h")),_vf(c.get("low") or c.get("l")),_vf(c.get("close") or c.get("c")); vol=_vf(c.get("volume") or c.get("v"),0.0); ts=c.get("timestamp") or c.get("ts") or c.get("time")
+        elif isinstance(c,(list,tuple)) and len(c)>=5:
+            ts=c[0]; o,h,l,cl=_vf(c[1]),_vf(c[2]),_vf(c[3]),_vf(c[4]); vol=_vf(c[5],0.0) if len(c)>5 else 0.0
+        else:
+            continue
+        if None in (o,h,l,cl):
+            continue
+        out.append({"ts":ts,"open":o,"high":h,"low":l,"close":cl,"volume":vol or 0.0})
+    return out
+
+
+def _atr(cs: list[dict], n: int = 14) -> Optional[float]:
+    if len(cs) < 2:
+        return None
+    tr=[]
+    prev=cs[0]["close"]
+    for x in cs[1:]:
+        tr.append(max(x["high"]-x["low"], abs(x["high"]-prev), abs(x["low"]-prev)))
+        prev=x["close"]
+    vals=tr[-n:]
+    return (sum(vals)/len(vals)) if vals else None
+
+
+def _pivots(cs: list[dict], w: int = 2) -> tuple[list[dict], list[dict]]:
+    hi=[]; lo=[]
+    for i in range(w, len(cs)-w):
+        seg=cs[i-w:i+w+1]
+        if cs[i]["high"] >= max(x["high"] for x in seg): hi.append({"i":i,"price":cs[i]["high"],"ts":cs[i]["ts"]})
+        if cs[i]["low"] <= min(x["low"] for x in seg): lo.append({"i":i,"price":cs[i]["low"],"ts":cs[i]["ts"]})
+    return hi,lo
+
+
+def _extract_level(chart: dict, *keys: str) -> Optional[float]:
+    queue=[chart]
+    seen=set()
+    while queue:
+        obj=queue.pop(0)
+        if not isinstance(obj,dict) or id(obj) in seen:
+            continue
+        seen.add(id(obj))
+        for k in keys:
+            v=obj.get(k)
+            x=_vf(v)
+            if x is not None:
+                return x
+        for v in obj.values():
+            if isinstance(v,dict): queue.append(v)
+    return None
+
+
+def _derive_level_map(candles: list[Any], chart: dict, spot: Optional[float]) -> dict:
+    cs=_norm_candles(candles)
+    if not cs:
+        return {"support":None,"resistance":None,"demand":None,"supply":None,"atr":None,"source":"UNAVAILABLE"}
+    spot=_vf(spot, cs[-1]["close"])
+    atr=_atr(cs) or max(spot*0.002, 1e-9)
+    highs,lows=_pivots(cs[-100:],2)
+    engine_support=_extract_level(chart,"support","support_level","nearest_support","s1")
+    engine_resistance=_extract_level(chart,"resistance","resistance_level","nearest_resistance","r1")
+    support=engine_support
+    resistance=engine_resistance
+    if support is None:
+        below=[x["price"] for x in lows if x["price"] <= spot]
+        support=max(below) if below else min(x["low"] for x in cs[-20:])
+    if resistance is None:
+        above=[x["price"] for x in highs if x["price"] >= spot]
+        resistance=min(above) if above else max(x["high"] for x in cs[-20:])
+    d_half=max(atr*0.35, spot*0.0005)
+    s_half=max(atr*0.35, spot*0.0005)
+    demand={"low":support-d_half,"high":support+d_half,"mid":support,"source":"ENGINE" if engine_support is not None else "CANDLE_DERIVED"}
+    supply={"low":resistance-s_half,"high":resistance+s_half,"mid":resistance,"source":"ENGINE" if engine_resistance is not None else "CANDLE_DERIVED"}
+    tol=max(atr*0.28, spot*0.0006)
+    def touches(level: float, kind: str) -> int:
+        if level is None: return 0
+        if kind=="support": return sum(1 for x in cs[-80:] if abs(x["low"]-level)<=tol)
+        return sum(1 for x in cs[-80:] if abs(x["high"]-level)<=tol)
+    def health(level: float, kind: str) -> dict:
+        t=touches(level,kind)
+        rejections=[]
+        for x in cs[-60:]:
+            if kind=="support" and abs(x["low"]-level)<=tol: rejections.append(max(0.0,x["close"]-x["low"]))
+            if kind=="resistance" and abs(x["high"]-level)<=tol: rejections.append(max(0.0,x["high"]-x["close"]))
+        avg=(sum(rejections)/len(rejections)) if rejections else 0.0
+        score=_clamp100(72 - max(0,t-1)*11 + min(22,(avg/max(atr,1e-9))*16))
+        state="STRONG" if score>=72 else "HOLDING" if score>=55 else "WEAKENING" if score>=35 else "CONSUMED"
+        return {"score":round(score,1),"state":state,"tests":t,"avg_rejection":round(avg,4)}
+    return {
+        "support":round(support,4) if support is not None else None,
+        "resistance":round(resistance,4) if resistance is not None else None,
+        "demand":{k:(round(v,4) if isinstance(v,(int,float)) else v) for k,v in demand.items()},
+        "supply":{k:(round(v,4) if isinstance(v,(int,float)) else v) for k,v in supply.items()},
+        "atr":round(atr,4),
+        "support_health":health(support,"support"),
+        "resistance_health":health(resistance,"resistance"),
+        "source":"ENGINE+CANDLES" if engine_support is not None or engine_resistance is not None else "CANDLE_DERIVED",
+    }
+
+
+def _chain_analytics(chain: dict, spot: Optional[float]) -> dict:
+    rows=list((chain or {}).get("chain") or [])
+    def oi(side: dict) -> float: return _vf(side.get("oi"),0.0) or 0.0
+    def poi(side: dict) -> float: return _vf(side.get("prev_oi"),oi(side)) or oi(side)
+    def enrich(row: dict, side_key: str) -> dict:
+        sd=row.get(side_key) or {}; cur=oi(sd); prev=poi(sd); change=cur-prev; pct=(change/abs(prev)*100.0) if prev else None
+        return {"strike":_vf(row.get("strike")),"ltp":_vf(sd.get("ltp")),"oi":cur,"prev_oi":prev,"oi_change":change,"oi_change_pct":pct,"volume":_vf(sd.get("volume"),0.0),"bid":_vf(sd.get("bid")),"ask":_vf(sd.get("ask")),"iv":_vf(sd.get("iv")),"delta":_vf(sd.get("delta")),"gamma":_vf(sd.get("gamma")),"theta":_vf(sd.get("theta")),"vega":_vf(sd.get("vega"))}
+    ce_rows=[enrich(r,"ce") for r in rows]; pe_rows=[enrich(r,"pe") for r in rows]
+    ce_wall=max(ce_rows,key=lambda x:x["oi"],default={}); pe_wall=max(pe_rows,key=lambda x:x["oi"],default={})
+    total_ce=sum(x["oi"] for x in ce_rows); total_pe=sum(x["oi"] for x in pe_rows)
+    total_cv=sum((x["volume"] or 0) for x in ce_rows); total_pv=sum((x["volume"] or 0) for x in pe_rows)
+    atm={}
+    valid=[r for r in rows if _vf(r.get("strike")) is not None and spot is not None]
+    if valid:
+        raw=min(valid,key=lambda r:abs((_vf(r.get("strike")) or 0)-spot)); atm={"strike":_vf(raw.get("strike")),"ce":enrich(raw,"ce"),"pe":enrich(raw,"pe")}
+    def wall_state(w: dict) -> str:
+        d=_vf(w.get("oi_change"))
+        if d is None:return "N/A"
+        if d>0:return "BUILDING"
+        if d<0:return "WEAKENING/UNWINDING"
+        return "UNCHANGED"
+    return {
+        "spot":spot,"expiry":(chain or {}).get("expiry"),"rows":rows,
+        "call_wall":{**ce_wall,"state":wall_state(ce_wall),"share_pct":(ce_wall.get("oi",0)/total_ce*100 if total_ce else None)},
+        "put_wall":{**pe_wall,"state":wall_state(pe_wall),"share_pct":(pe_wall.get("oi",0)/total_pe*100 if total_pe else None)},
+        "atm":atm,"total_call_oi":total_ce,"total_put_oi":total_pe,"pcr_oi":(total_pe/total_ce if total_ce else None),
+        "total_call_volume":total_cv,"total_put_volume":total_pv,"pcr_volume":(total_pv/total_cv if total_cv else None),
+        "source":(chain or {}).get("source") or "Upstox option chain",
+    }
+
+
+def _level_attack(spot: Optional[float], levels: dict, chain: dict, candidate: dict) -> dict:
+    if spot is None:
+        return {"state":"INSUFFICIENT_DATA","up_break_pressure":None,"down_break_pressure":None,"evidence":[]}
+    atr=_vf(levels.get("atr"), max(abs(spot)*0.002,1e-9)) or 1.0
+    res=_vf(levels.get("resistance")); sup=_vf(levels.get("support"))
+    sc=(candidate.get("scout_pack") or {}).get("scouts") or {}
+    vol=sc.get("volume") or {}; oi=sc.get("oi") or {}; opt=sc.get("options") or {}; order=sc.get("order_flow") or {}
+    rvol=_vf(vol.get("rvol"),_vf(candidate.get("rvol")))
+    depth=_vf(order.get("pressure"))
+    premium=_vf(opt.get("premium_response"),_vf(candidate.get("premium_response")))
+    atm=chain.get("atm") or {}; ce=atm.get("ce") or {}; pe=atm.get("pe") or {}
+    cechg=_vf(ce.get("oi_change")); pechg=_vf(pe.get("oi_change"))
+    up=35.0; down=35.0; ev=[]
+    if res is not None:
+        dist=(res-spot)/max(atr,1e-9)
+        if 0<=dist<=0.6: up+=15; ev.append("Price is attacking resistance")
+        elif spot>res: up+=20; ev.append("Price is above resistance")
+    if sup is not None:
+        dist=(spot-sup)/max(atr,1e-9)
+        if 0<=dist<=0.6: down+=15; ev.append("Price is attacking support")
+        elif spot<sup: down+=20; ev.append("Price is below support")
+    if rvol is not None:
+        if rvol>=1.5: up+=8; down+=8; ev.append(f"RVOL {rvol:.2f}x")
+        elif rvol<0.8: up-=6; down-=6
+    if depth is not None:
+        up+=(depth-50)*0.45; down+=(50-depth)*0.45; ev.append(f"Depth pressure {depth:.0f}")
+    if premium is not None:
+        side=str(candidate.get("side") or candidate.get("v72_side") or "").upper()
+        if side=="CE": up+=(premium-50)*0.25
+        elif side=="PE": down+=(premium-50)*0.25
+    if cechg is not None:
+        if cechg<0: up+=9; ev.append("ATM Call OI unwinding")
+        elif cechg>0: up-=5
+    if pechg is not None:
+        if pechg>0: up+=7; ev.append("ATM Put OI building")
+        elif pechg<0: down+=7
+    if pechg is not None and pechg<0: down+=9; ev.append("ATM Put OI unwinding")
+    if cechg is not None and cechg>0: down+=7; ev.append("ATM Call OI building")
+    up=_clamp100(up); down=_clamp100(down)
+    if max(up,down)<55: state="WAIT"
+    elif up>=down+12: state="UPSIDE BREAK PRESSURE"
+    elif down>=up+12: state="DOWNSIDE BREAK PRESSURE"
+    else: state="CONFLICT / WAIT"
+    return {
+        "state":state,"up_break_pressure":round(up,1),"down_break_pressure":round(down,1),
+        "rvol":rvol,"depth_pressure":depth,"premium_response":premium,
+        "atm_ce_oi_change":cechg,"atm_pe_oi_change":pechg,"evidence":ev[:10],
+        "policy":"Evidence pressure score, not a probability of a breakout.",
+    }
+
+
+def _symbol_candidate(svc, sym: str) -> dict:
+    row=base._cached_candidate(sym)
+    if row:
+        return copy.deepcopy(row)
+    if sym in getattr(base,"_INDEX_ALIASES",{}):
+        try:return base._index_underlying_row(svc,sym) or {}
+        except Exception:return {}
+    return {}
+
+
+@app.get("/api/v74.3/intelligence/{symbol}")
+def v743_intelligence(symbol: str, request: Request, interval: int = Query(5, ge=1, le=30), limit: int = Query(180, ge=30, le=240)):
+    """One truth-preserving payload for Chart Pro, zones, OI walls and Level War Room."""
+    svc=base.request_service(request)
+    if not svc.authenticated or getattr(svc,"token_invalid",False):
+        raise HTTPException(status_code=401,detail=base._auth_detail(svc))
+    sym=base._clean_symbol(symbol)
+    candidate=_symbol_candidate(svc,sym)
+    candles=[]; chart={}; chain={}; errors=[]
+    try:
+        candles=svc.instrument_candles(sym,interval=interval,limit=limit)
+        snap=svc.snapshot()
+        chart=base.predictive_chart_intelligence(candles,sym,interval,snap,candidate) or {}
+    except Exception as exc:
+        errors.append(f"chart:{str(exc)[:120]}")
+    try:
+        chain=base._option_chain_snapshot(svc,sym,force=False) or {}
+    except Exception as exc:
+        errors.append(f"chain:{str(exc)[:120]}")
+    cs=_norm_candles(candles); spot=_vf((chain or {}).get("spot"), _vf(candidate.get("ltp"), cs[-1]["close"] if cs else None))
+    levels=_derive_level_map(candles,chart,spot)
+    ca=_chain_analytics(chain,spot)
+    attack=_level_attack(spot,levels,ca,candidate)
+    try: provider_status=svc.status() or {}
+    except Exception: provider_status={}
+    return {
+        "version":VERSION,"release":RELEASE,"symbol":sym,"spot":spot,"interval":interval,
+        "candidate":candidate,"candles":candles,"chart":chart,"option_chain":chain,
+        "levels":levels,"derivatives":ca,"level_attack":attack,
+        "provenance":{
+            "market_data":"Upstox live/REST provider via existing service",
+            "option_chain":ca.get("source"),
+            "levels":levels.get("source"),
+            "data_status":provider_status.get("data_status"),
+            "tick_age_sec":provider_status.get("tick_age_sec"),
+            "rest_age_sec":provider_status.get("rest_age_sec"),
+            "generated_epoch":time.time(),
+        },
+        "errors":errors,"read_only":True,"execution_enabled":False,
+        "truth_policy":"No synthetic market values. Derived zones/levels are labelled CANDLE_DERIVED when not supplied by the chart engine. Break pressure is evidence strength, not a guaranteed probability.",
+    }
+
+
+
 @app.get("/api/v74.3/precision")
 def v743_precision(request: Request):
     svc = base.request_service(request)
@@ -288,7 +595,7 @@ def v743_config():
 FEATURE_MANIFEST = [
     "COMMAND", "INDEX CALLS", "MARKET", "SMART MONEY", "FII/DII", "HEATWAVE",
     "SECTORS", "AUTO TRENDER", "CIRCUITS", "ULTRA CALLS", "CHART PRO",
-    "ULTRA DERIVATIVES", "OPTION CHAIN", "OI WALLS", "DEPTH/DOM", "EXPIRY HERO",
+    "SUPPLY/DEMAND", "S/R BREAK", "ULTRA DERIVATIVES", "OPTION CHAIN", "OI WALLS", "DEPTH/DOM", "EXPIRY HERO",
     "ALERTS", "WATCHLIST", "ACCURACY", "REPLAY", "AUDIT", "SYSTEM",
     "LEVEL MEMORY", "SYMBOL DNA MEMORY", "INDEX DNA MEMORY", "EXPIRY MEMORY",
     "OI WALL MEMORY", "SMART MONEY MEMORY", "SECTOR ROTATION MEMORY", "SETUP MEMORY",
@@ -304,7 +611,9 @@ FEATURE_MANIFEST = [
 
 def _feature_manifest_payload() -> dict:
     ui = V743_UI.read_text(errors="ignore") if V743_UI.exists() else ""
-    ui_present = {name: (name in ui) for name in FEATURE_MANIFEST[:22]}
+    required_ui = FEATURE_MANIFEST[:24]
+    ui_present = {name: (f'data-feature="{name}"' in ui or f"data-feature='{name}'" in ui) for name in required_ui}
+    route_paths={getattr(r,"path",None) for r in app.router.routes}
     backend_checks = {
         "continuous_scanner": callable(getattr(base, "_background_meta", None)),
         "call_engine": callable(getattr(base, "call_engine_plan", None)),
@@ -313,18 +622,23 @@ def _feature_manifest_payload() -> dict:
         "alerts": callable(getattr(eng, "alert_snapshot", None)),
         "memory": memory.MEMORY is not None,
         "precision": precision.STORE is not None,
+        "index_command_route": "/api/v74.3/index-command" in route_paths,
+        "intelligence_route": "/api/v74.3/intelligence/{symbol}" in route_paths,
     }
+    truth_checks={
+        "no_demo_market_values": "DATA_TRUTH_FINAL" in ui and "NO_SYNTHETIC_MARKET_VALUES" in ui,
+        "index_calls_index_only": "INDEX_ONLY_CALLS" in ui,
+        "heatwave_sectors_separate": "HEATWAVE_VISUAL_ONLY" in ui and "SECTOR_ANALYTICS_ONLY" in ui,
+        "real_indicator_calculation": "computeRSI" in ui and "computeMACD" in ui,
+        "level_war_room": "LEVEL_WAR_ROOM" in ui,
+        "oi_change_columns": "CE ΔOI" in ui and "PE ΔOI" in ui,
+    }
+    all_ok=all(ui_present.values()) and all(backend_checks.values()) and all(truth_checks.values())
     return {
-        "version": VERSION,
-        "release": RELEASE,
-        "required_features": FEATURE_MANIFEST,
-        "ui_modules": ui_present,
-        "ui_loaded": sum(1 for x in ui_present.values() if x),
-        "ui_required": len(ui_present),
-        "backend_checks": backend_checks,
-        "backend_ready": all(backend_checks.values()),
-        "regression_guard": "PASS" if all(ui_present.values()) and all(backend_checks.values()) else "ATTENTION",
-        "read_only": True,
+        "version": VERSION,"release": RELEASE,"required_features": FEATURE_MANIFEST,
+        "ui_modules":ui_present,"ui_loaded":sum(1 for x in ui_present.values() if x),"ui_required":len(ui_present),
+        "backend_checks":backend_checks,"truth_checks":truth_checks,"backend_ready":all(backend_checks.values()),
+        "regression_guard":"PASS" if all_ok else "ATTENTION","read_only":True,
     }
 
 
