@@ -1,13 +1,13 @@
 {
-  "name": "POWERHOUSE AI V74.3 PRO \u2014 Final Intelligence OS",
+  "name": "POWERHOUSE AI V74.3 PRO \u2014 Final Locked Intelligence OS",
   "short_name": "POWERHOUSE V74.3",
-  "description": "Read-only India-market precision intelligence OS with autonomous discovery, Ultra Accuracy TAKE/SKIP meta-labeling, immutable call snapshots, audit, alerts and Safe Mode.",
+  "description": "India-market read-only intelligence OS with index-only calls, Chart Pro, Level War Room, demand/supply, support/resistance, OI walls, Ultra Derivatives, memory, audit and truth-preserving N/A states.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#04101f",
-  "theme_color": "#04101f",
+  "background_color": "#03111f",
+  "theme_color": "#03111f",
   "icons": [
     {
       "src": "/static/icon-192.png",

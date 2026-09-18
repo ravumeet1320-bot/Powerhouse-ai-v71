@@ -1,4 +1,4 @@
-const CACHE='powerhouse-v74-3-pro-accuracy-1';
+const CACHE='powerhouse-v74-3-final-locked-1';
 const SHELL=['/','/static/v743.html','/static/icon-192.png','/static/icon-512.png','/static/apple-touch-icon.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
