@@ -178,10 +178,16 @@ _remove_owned_route("/api/health")
 
 @app.get("/")
 def v743_home():
+    headers={
+        "Cache-Control":"no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma":"no-cache",
+        "Expires":"0",
+        "X-Powerhouse-Build":"V74.3-LIVEFIX3",
+    }
     if V743_UI.exists():
-        return FileResponse(V743_UI)
+        return FileResponse(V743_UI, headers=headers)
     if base.V74_UI.exists():
-        return FileResponse(base.V74_UI)
+        return FileResponse(base.V74_UI, headers=headers)
     raise HTTPException(status_code=503, detail="V74.3 UI asset missing")
 
 
@@ -491,6 +497,40 @@ def _symbol_candidate(svc, sym: str) -> dict:
     return {}
 
 
+def _chain_from_index_snapshot(svc, symbol: str, snap: dict) -> dict:
+    """Reuse an already-fetched index snapshot so intelligence does not hit the same
+    option-contract + option-chain endpoints twice in one request."""
+    if not isinstance(snap, dict) or not snap.get("ok"):
+        return {}
+    rows=[]
+    for r in snap.get("option_data") or []:
+        coi=r.get("coi"); poi=r.get("poi"); cchg=r.get("cchg"); pchg=r.get("pchg")
+        rows.append({
+            "strike":r.get("s"), "spot":snap.get("spot"),
+            "ce":{
+                "ltp":r.get("cltp"), "oi":coi,
+                "prev_oi":(coi-cchg) if coi is not None and cchg is not None else coi,
+                "volume":r.get("cvol"), "bid":r.get("cbid"), "ask":r.get("cask"),
+                "iv":r.get("civ"), "delta":r.get("c_delta"), "gamma":r.get("c_gamma"),
+                "theta":r.get("c_theta"), "vega":r.get("c_vega"), "key":r.get("call_key"),
+            },
+            "pe":{
+                "ltp":r.get("pltp"), "oi":poi,
+                "prev_oi":(poi-pchg) if poi is not None and pchg is not None else poi,
+                "volume":r.get("pvol"), "bid":r.get("pbid"), "ask":r.get("pask"),
+                "iv":r.get("piv"), "delta":r.get("p_delta"), "gamma":r.get("p_gamma"),
+                "theta":r.get("p_theta"), "vega":r.get("p_vega"), "key":r.get("put_key"),
+            },
+        })
+    return {
+        "ok":True,"symbol":symbol,"instrument_key":svc.resolve_underlying_key(symbol),
+        "expiry":snap.get("expiry"),"expiries":[snap.get("expiry")] if snap.get("expiry") else [],
+        "spot":snap.get("spot"),"chain":rows,"chain_rows":len(rows),
+        "source":(snap.get("source") or "Upstox option chain")+"/reused",
+        "read_only":True,
+    }
+
+
 @app.get("/api/v74.3/intelligence/{symbol}")
 def v743_intelligence(symbol: str, request: Request, interval: int = Query(5, ge=1, le=30), limit: int = Query(180, ge=30, le=240)):
     """One truth-preserving payload for Chart Pro, zones, OI walls and Level War Room."""
@@ -507,7 +547,8 @@ def v743_intelligence(symbol: str, request: Request, interval: int = Query(5, ge
     except Exception as exc:
         errors.append(f"chart:{str(exc)[:120]}")
     try:
-        chain=base._option_chain_snapshot(svc,sym,force=False) or {}
+        idx_snap=(candidate or {}).get("index_snapshot") if sym in getattr(base,"_INDEX_ALIASES",{}) else None
+        chain=_chain_from_index_snapshot(svc,sym,idx_snap) if idx_snap else (base._option_chain_snapshot(svc,sym,force=False) or {})
     except Exception as exc:
         errors.append(f"chain:{str(exc)[:120]}")
     cs=_norm_candles(candles); spot=_vf((chain or {}).get("spot"), _vf(candidate.get("ltp"), cs[-1]["close"] if cs else None))

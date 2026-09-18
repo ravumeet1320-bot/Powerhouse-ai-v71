@@ -1,0 +1,15 @@
+POWERHOUSE AI V74.3 — LIVEFIX3
+
+Screenshot diagnosis:
+- iPhone was still running the old cached HTML: it displayed the legacy error text "Some modules unavailable".
+- Render logs at the same time showed multiple APIs returning 200 OK, proving backend availability while the old UI was stuck waiting on a long intelligence request.
+
+Fixes:
+1. Root HTML now sends Cache-Control: no-store/no-cache + X-Powerhouse-Build V74.3-LIVEFIX3.
+2. Service worker no longer caches the application HTML or navigation document.
+3. Service-worker registration uses ?v=3 + updateViaCache:none and auto reloads once on controller change.
+4. Visible LIVEFIX3 badge confirms the fresh frontend is active.
+5. Core endpoints paint progressively as each response arrives; no Promise-all blank-screen gate.
+6. Core timeouts increased to tolerate slow free-tier/provider responses while keeping the shell interactive.
+7. Index intelligence reuses the already-fetched index snapshot for option-chain analytics instead of hitting the same chain endpoints twice.
+8. No synthetic market data added.
