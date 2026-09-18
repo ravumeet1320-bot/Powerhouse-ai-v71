@@ -1,0 +1,16 @@
+POWERHOUSE AI V74.3 — LIVE DATA DISPLAY FIX
+
+Root cause fixed:
+- UI previously waited for 13 API calls before first render.
+- All modules refreshed every 12s, overloading the free Render instance and delaying the intelligence call.
+
+Fix:
+- Immediate shell render with N/A/LOADING states.
+- Critical market endpoints load independently first.
+- Intelligence endpoint loads in the core lane.
+- Core refresh: 8 seconds.
+- Slow/secondary modules refresh: 45 seconds.
+- Request timeouts prevent one slow module blocking the whole dashboard.
+- Prominent UPSTOX AUTH REQUIRED state when provider auth is false.
+- Service-worker cache bumped so iOS/PWA receives the new UI.
+- No synthetic market data introduced.
