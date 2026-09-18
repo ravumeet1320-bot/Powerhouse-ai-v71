@@ -182,7 +182,7 @@ def v743_home():
         "Cache-Control":"no-store, no-cache, must-revalidate, max-age=0",
         "Pragma":"no-cache",
         "Expires":"0",
-        "X-Powerhouse-Build":"V74.3-LIVEFIX4",
+        "X-Powerhouse-Build":"V74.3-LIVEFIX5",
     }
     if V743_UI.exists():
         return FileResponse(V743_UI, headers=headers)
@@ -205,7 +205,7 @@ def v743_health(request: Request):
         "app": "POWERHOUSE AI V74.3",
         "version": VERSION,
         "release": RELEASE,
-        "build": "LIVEFIX4",
+        "build": "LIVEFIX5",
         "read_only": True,
         "orders_enabled": False,
         "execution_enabled": False,

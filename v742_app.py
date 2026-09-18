@@ -489,6 +489,75 @@ def v74_status(request: Request):
     return out
 
 
+def _ui_candidate_row(row: dict) -> dict:
+    """Small projection for the mobile dashboard; no raw scout/replay trees."""
+    if not isinstance(row, dict):
+        return {}
+    hist = row.get("history_metrics") or {}
+    scouts = ((row.get("scout_pack") or {}).get("scouts") or {})
+    vol = scouts.get("volume") or {}
+    oi = scouts.get("oi") or {}
+    return {
+        "symbol": row.get("symbol"), "sector": row.get("sector"),
+        "ltp": row.get("ltp"), "change_pct": row.get("change_pct"),
+        "stage": row.get("stage"), "pre_move_stage": row.get("pre_move_stage"),
+        "score": row.get("score"), "pre_move_score": row.get("pre_move_score"),
+        "side": row.get("side"), "direction": row.get("direction"), "bias": row.get("bias"),
+        "acceleration": row.get("acceleration"), "rvol": row.get("rvol"),
+        "data_status": row.get("data_status"), "source": row.get("source"),
+        "history_metrics": {
+            "price_60s_pct": hist.get("price_60s_pct"),
+            "price_acceleration": hist.get("price_acceleration"),
+        },
+        "scout_pack": {"scouts": {
+            "volume": {"rvol": vol.get("rvol")},
+            "oi": {"delta_oi_pct": oi.get("delta_oi_pct")},
+        }},
+    }
+
+
+@app.get("/api/v74/ui-status")
+def v74_ui_status(request: Request):
+    """LIVEFIX5 cache-only UI state; excludes heavy nested scanner payloads."""
+    svc, out = _live_v74_result(request)
+    if out is None:
+        e = empty_v74_status(_auth_detail(svc))
+        return {
+            "version": VERSION, "release": RELEASE,
+            "data_status": e.get("data_status") or "UNAVAILABLE",
+            "reason": e.get("reason"),
+            "continuous_scanner": _background_meta(),
+            "radar": {"candidates": []},
+            "workspaces": {"market": {"breadth": {}, "sectors": []}, "flow-technical": {"flow": []}},
+            "sector_heatmap": [], "circuits": {"candidates": []},
+            "read_only": True,
+        }
+    radar = out.get("radar") or {}
+    workspaces = out.get("workspaces") or {}
+    market = workspaces.get("market") or {}
+    flow_ws = workspaces.get("flow-technical") or {}
+    circuits = out.get("circuits") or {}
+    return {
+        "version": out.get("version") or VERSION,
+        "release": out.get("release") or RELEASE,
+        "data_status": out.get("data_status"),
+        "continuous_scanner": out.get("continuous_scanner") or _background_meta(),
+        "radar": {"candidates": [_ui_candidate_row(x) for x in list(radar.get("candidates") or [])[:180]]},
+        "workspaces": {
+            "market": {
+                "breadth": dict(market.get("breadth") or {}),
+                "sectors": [dict(x) for x in list(market.get("sectors") or [])[:60] if isinstance(x, dict)],
+            },
+            "flow-technical": {
+                "flow": [dict(x) for x in list(flow_ws.get("flow") or [])[:80] if isinstance(x, dict)],
+            },
+        },
+        "sector_heatmap": [dict(x) for x in list(out.get("sector_heatmap") or [])[:60] if isinstance(x, dict)],
+        "circuits": {"candidates": [dict(x) for x in list(circuits.get("candidates") or [])[:80] if isinstance(x, dict)]},
+        "read_only": True,
+    }
+
+
 @app.get("/api/v74/tabs")
 def v74_tabs():
     return {

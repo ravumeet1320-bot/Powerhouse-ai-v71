@@ -1582,22 +1582,27 @@ class UpstoxService:
         if not key:
             return
         ts = ts or time.time()
-        dq = self.history[key]
-        if dq and abs(dq[-1].ts - ts) < 0.35:
-            dq[-1] = Tick(ts, volume, oi, ltp)
-        else:
-            dq.append(Tick(ts, volume, oi, ltp))
-        cutoff = ts - 20 * 60
-        while dq and dq[0].ts < cutoff:
-            dq.popleft()
+        # LIVEFIX5: provider/background threads write while HTTP analytics read.
+        # Guard mutation and make readers iterate an immutable snapshot.
+        with self.lock:
+            dq = self.history[key]
+            if dq and abs(dq[-1].ts - ts) < 0.35:
+                dq[-1] = Tick(ts, volume, oi, ltp)
+            else:
+                dq.append(Tick(ts, volume, oi, ltp)
+                )
+            cutoff = ts - 20 * 60
+            while dq and dq[0].ts < cutoff:
+                dq.popleft()
 
     def _sample_at_or_before(self, key: str, seconds_ago: float) -> Optional[Tick]:
-        dq = self.history.get(key)
-        if not dq:
+        with self.lock:
+            snap = tuple(self.history.get(key) or ())
+        if not snap:
             return None
         target = time.time() - seconds_ago
         candidate = None
-        for tick in reversed(dq):
+        for tick in reversed(snap):
             if tick.ts <= target:
                 return tick
             candidate = tick

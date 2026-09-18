@@ -1,0 +1,9 @@
+POWERHOUSE AI V74.3 LIVEFIX5
+
+- Added /api/v74/ui-status: cache-only lightweight dashboard payload.
+- Frontend no longer calls the heavy /api/v74/status route for routine UI refresh.
+- Fixed DATA N/A fallback when intelligence provenance is temporarily N/A but health feed is LIVE/REST/STALE.
+- Secondary endpoint timeouts no longer override a healthy core feed banner.
+- Made Upstox microstructure history sampling thread-safe to prevent RuntimeError: deque mutated during iteration.
+- Bumped service worker cache to livefix5.
+- No trading feature removed; legacy /api/v74/status remains available for compatibility.
