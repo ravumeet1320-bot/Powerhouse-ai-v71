@@ -1,4 +1,4 @@
-const CACHE='powerhouse-v74-3-livefix4';
+const CACHE='powerhouse-v74-3-livefix5';
 const ASSETS=['/static/icon-192.png','/static/icon-512.png','/static/apple-touch-icon.png','/static/manifest.webmanifest'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
