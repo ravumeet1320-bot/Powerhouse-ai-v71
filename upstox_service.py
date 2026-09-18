@@ -160,7 +160,7 @@ class UpstoxService:
         self.expiries: List[str] = []
         self.chain: Dict[float, Dict[str, Any]] = {}
         self.instrument_lookup: Dict[str, Tuple[float, str]] = {}
-        self.history: Dict[str, Deque[Tick]] = defaultdict(lambda: deque(maxlen=1200))
+        self.history: Dict[str, Deque[Tick]] = defaultdict(lambda: deque(maxlen=360))
         self.last_rest_sync = 0.0
         self.last_analytics_sync = 0.0
         self.last_message_ts = 0.0
@@ -1835,6 +1835,12 @@ class UpstoxService:
             })
         payload={"ok":True,"symbol":sym,"instrument_key":key,"expiry":expiry,"expiries":expiries[:12],"spot":spot or None,"chain":out,"chain_rows":len(out),"source":"Upstox option chain","epoch":time.time(),"read_only":True}
         self.stock_chain_cache[cache_key]={"epoch":time.time(),"payload":payload}
+        # LIVEFIX4: keep only a small recent chain cache. A long-running scanner can
+        # otherwise retain many symbol/expiry payloads and push a 512MB instance OOM.
+        if len(self.stock_chain_cache) > 24:
+            oldest=sorted(self.stock_chain_cache.items(), key=lambda kv: safe_float((kv[1] or {}).get("epoch")))[:-24]
+            for k,_ in oldest:
+                self.stock_chain_cache.pop(k,None)
         return payload
 
     # ---------- background lifecycle ----------

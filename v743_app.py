@@ -182,7 +182,7 @@ def v743_home():
         "Cache-Control":"no-store, no-cache, must-revalidate, max-age=0",
         "Pragma":"no-cache",
         "Expires":"0",
-        "X-Powerhouse-Build":"V74.3-LIVEFIX3",
+        "X-Powerhouse-Build":"V74.3-LIVEFIX4",
     }
     if V743_UI.exists():
         return FileResponse(V743_UI, headers=headers)
@@ -193,24 +193,27 @@ def v743_home():
 
 @app.get("/api/health")
 def v743_health(request: Request):
+    # LIVEFIX4 health is intentionally O(1): no calibration/DB query and no full
+    # market snapshot. The UI only needs auth, feed state and scanner heartbeat here.
     svc = base.request_service(request)
     try:
-        svc_status = svc.status() or {}
+        ds = svc._data_status() if hasattr(svc,"_data_status") else {}
     except Exception:
-        svc_status = {}
-    precision.observe_scanner(base._background_meta())
+        ds = {}
     return {
         "ok": True,
         "app": "POWERHOUSE AI V74.3",
         "version": VERSION,
         "release": RELEASE,
+        "build": "LIVEFIX4",
         "read_only": True,
         "orders_enabled": False,
         "execution_enabled": False,
         "upstox_authenticated": bool(getattr(svc, "authenticated", False)),
-        "upstox_data_status": svc_status.get("data_status"),
+        "upstox_data_status": ds.get("data_status"),
+        "tick_age_sec": ds.get("tick_age_sec"),
+        "rest_age_sec": ds.get("rest_age_sec"),
         "continuous_scanner": base._background_meta(),
-        "ultra_accuracy": precision.pro_status(),
         "request_driven_scanning": False,
     }
 
@@ -238,53 +241,40 @@ def v743_status(request: Request):
 
 @app.get("/api/v74.3/index-command")
 def v743_index_command(request: Request):
-    """Index-only command board. Never mixes equity symbols into index calls."""
+    """Ultra-light index board: live LTPC from provider memory + cached call plans.
+
+    This endpoint never fires option-chain, candle or per-index REST requests.
+    """
     svc = base.request_service(request)
     if not svc.authenticated or getattr(svc, "token_invalid", False):
         raise HTTPException(status_code=401, detail=base._auth_detail(svc))
     try:
-        provider_status = svc.status() or {}
+        with svc.lock:
+            levels={k:dict(v) for k,v in getattr(svc,"index_levels",{}).items()}
     except Exception:
-        provider_status = {}
-    auto = copy.deepcopy(base._V74_AUTO_CALLS)
-    auto_rows = list(auto.get("results") or [])
-    out = []
-    for symbol in ("NIFTY", "BANKNIFTY", "MIDCPNIFTY", "SENSEX"):
-        try:
-            underlying = base._index_underlying_row(svc, symbol) or {}
-        except Exception:
-            underlying = {}
-        snap = underlying.get("index_snapshot") or {}
-        auto_row = next((r for r in auto_rows if str(r.get("symbol") or "").upper() == symbol), None) or {}
-        call = copy.deepcopy(auto_row.get("call") or {})
+        levels={}
+    auto=dict(base._V74_AUTO_CALLS)
+    auto_rows=list(auto.get("results") or [])
+    out=[]
+    for symbol in ("NIFTY","BANKNIFTY","MIDCPNIFTY","SENSEX"):
+        lv=levels.get(symbol) or {}
+        ltp=_vf(lv.get("ltp")); cp=_vf(lv.get("cp"))
+        chg=((ltp-cp)/abs(cp)*100.0) if ltp is not None and cp not in (None,0) else None
+        ar=next((r for r in auto_rows if str(r.get("symbol") or "").upper()==symbol),None) or {}
+        call=copy.deepcopy(ar.get("call") or {})
         if not call:
-            call = {
-                "action": "WAIT", "meta_label": "SKIP", "status": "WAIT",
-                "strike": None, "entry_zone": {}, "sl": None, "structural_sl": None,
-                "targets": {}, "meta_score": None,
-            }
+            call={"action":"WAIT","status":"WAIT","meta_label":"SKIP","entry_zone":{},"targets":{},"blocked_by":["CALL PLAN WARMING"]}
         out.append({
-            "symbol": symbol,
-            "label": (snap.get("active_label") or symbol),
-            "ltp": underlying.get("ltp"),
-            "change_pct": underlying.get("change_pct"),
-            "side": underlying.get("side"),
-            "stage": underlying.get("stage"),
-            "score": underlying.get("score"),
-            "source": underlying.get("source"),
-            "data_status": provider_status.get("data_status") or underlying.get("data_status"),
-            "tick_age_sec": provider_status.get("tick_age_sec"),
-            "rest_age_sec": provider_status.get("rest_age_sec"),
-            "expiry": snap.get("expiry"),
-            "price_series": copy.deepcopy(snap.get("price_series") or {}),
-            "session_context": copy.deepcopy(snap.get("session_context") or {}),
-            "call": call,
-            "read_only": True,
+            "symbol":symbol,"label":symbol,"ltp":ltp,"change_pct":chg,
+            "data_status":"LIVE" if ltp is not None else "N/A",
+            "source":"Upstox in-memory index LTPC",
+            "stage":ar.get("stage") or "WATCH","score":ar.get("score"),
+            "call":call,"updated_epoch":auto.get("updated_epoch"),"read_only":True,
         })
     return {
-        "version": VERSION, "release": RELEASE, "results": out,
-        "policy": "Index Calls contains NIFTY, BANKNIFTY, MIDCPNIFTY and SENSEX only. Missing data remains N/A/WAIT.",
-        "read_only": True, "execution_enabled": False,
+        "version":VERSION,"release":RELEASE,"results":out,"rows":out,"count":len(out),
+        "policy":"Index Calls is cache-only and never mixes equities into index cards.",
+        "read_only":True,"execution_enabled":False,
     }
 
 
@@ -497,6 +487,11 @@ def _symbol_candidate(svc, sym: str) -> dict:
     return {}
 
 
+_INTEL_CACHE = {}
+_INTEL_CACHE_LOCK = threading.RLock()
+_INTEL_CACHE_TTL_SEC = max(12.0, min(60.0, float(os.getenv("V743_INTEL_CACHE_TTL_SEC", "24"))))
+
+
 def _chain_from_index_snapshot(svc, symbol: str, snap: dict) -> dict:
     """Reuse an already-fetched index snapshot so intelligence does not hit the same
     option-contract + option-chain endpoints twice in one request."""
@@ -538,6 +533,13 @@ def v743_intelligence(symbol: str, request: Request, interval: int = Query(5, ge
     if not svc.authenticated or getattr(svc,"token_invalid",False):
         raise HTTPException(status_code=401,detail=base._auth_detail(svc))
     sym=base._clean_symbol(symbol)
+    cache_key=(sym,int(interval),int(limit))
+    with _INTEL_CACHE_LOCK:
+        cached=_INTEL_CACHE.get(cache_key)
+        if cached and time.time()-float(cached.get("_cache_epoch") or 0) <= _INTEL_CACHE_TTL_SEC:
+            out=copy.deepcopy(cached.get("payload") or {})
+            out.setdefault("provenance",{})["response_cache"]="HIT"
+            return out
     candidate=_symbol_candidate(svc,sym)
     candles=[]; chart={}; chain={}; errors=[]
     try:
@@ -557,7 +559,7 @@ def v743_intelligence(symbol: str, request: Request, interval: int = Query(5, ge
     attack=_level_attack(spot,levels,ca,candidate)
     try: provider_status=svc.status() or {}
     except Exception: provider_status={}
-    return {
+    payload={
         "version":VERSION,"release":RELEASE,"symbol":sym,"spot":spot,"interval":interval,
         "candidate":candidate,"candles":candles,"chart":chart,"option_chain":chain,
         "levels":levels,"derivatives":ca,"level_attack":attack,
@@ -573,7 +575,14 @@ def v743_intelligence(symbol: str, request: Request, interval: int = Query(5, ge
         "errors":errors,"read_only":True,"execution_enabled":False,
         "truth_policy":"No synthetic market values. Derived zones/levels are labelled CANDLE_DERIVED when not supplied by the chart engine. Break pressure is evidence strength, not a guaranteed probability.",
     }
-
+    payload.setdefault("provenance",{})["response_cache"]="MISS"
+    with _INTEL_CACHE_LOCK:
+        _INTEL_CACHE[cache_key]={"_cache_epoch":time.time(),"payload":copy.deepcopy(payload)}
+        if len(_INTEL_CACHE)>12:
+            oldest=sorted(_INTEL_CACHE.items(), key=lambda kv: float((kv[1] or {}).get("_cache_epoch") or 0))[:-12]
+            for k,_ in oldest:
+                _INTEL_CACHE.pop(k,None)
+    return payload
 
 
 @app.get("/api/v74.3/precision")

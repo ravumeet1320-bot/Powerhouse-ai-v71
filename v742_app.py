@@ -60,7 +60,7 @@ app = FastAPI(
 
 # Browser-independent V74 scan loop. It consumes only the already verified in-memory
 # Upstox snapshot, so it adds no order actions and no per-scan broker API calls.
-_V74_SCAN_INTERVAL_SEC = max(2.0, min(10.0, float(os.getenv("V74_SCAN_INTERVAL_SEC", "3"))))
+_V74_SCAN_INTERVAL_SEC = max(2.0, min(10.0, float(os.getenv("V74_SCAN_INTERVAL_SEC", "8"))))
 _V74_BG_LOCK = threading.RLock()
 _V74_BUILD_LOCK = threading.RLock()
 _V74_BG_RESULT = None
@@ -72,12 +72,12 @@ _V74_BG_META = {
 }
 _V74_BG_STOP = threading.Event()
 _V74_BG_THREAD = None
-_V74_AUTO_DEEP_INTERVAL_SEC = max(10.0, min(60.0, float(os.getenv("V74_AUTO_DEEP_INTERVAL_SEC", "18"))))
-_V74_AUTO_DEEP_MAX = max(1, min(8, int(os.getenv("V74_AUTO_DEEP_MAX", "4"))))
+_V74_AUTO_DEEP_INTERVAL_SEC = max(10.0, min(60.0, float(os.getenv("V74_AUTO_DEEP_INTERVAL_SEC", "30"))))
+_V74_AUTO_DEEP_MAX = max(1, min(8, int(os.getenv("V74_AUTO_DEEP_MAX", "2"))))
 _V74_AUTO_DEEP_LAST = 0.0
 _V74_AUTO_INDEX_CODES = [x.strip().upper() for x in os.getenv("V74_AUTO_INDEX_CODES", "NIFTY,BANKNIFTY").split(",") if x.strip()][:4]
 _V74_AUTO_CALLS = {"status":"WARMING","updated_epoch":0.0,"results":[],"errors":[],"policy":"Promotion-based automatic CALL ENGINE deep scan; no orders."}
-_V74_HOT_INTERVAL_SEC = max(0.8, min(3.0, float(os.getenv("V74_HOT_INTERVAL_SEC", "1"))))
+_V74_HOT_INTERVAL_SEC = max(0.8, min(3.0, float(os.getenv("V74_HOT_INTERVAL_SEC", "3"))))
 _V74_HOT_STOP = threading.Event()
 _V74_HOT_THREAD = None
 
@@ -85,8 +85,11 @@ _V74_HOT_THREAD = None
 
 def _store_v74_result(out: dict, scan_ms: float) -> None:
     global _V74_BG_RESULT
+    # LIVEFIX4: scanner builds a fresh immutable result object each cycle. Store the
+    # object reference instead of deep-copying the entire radar/workspace tree. The
+    # next scan replaces the reference atomically under the lock.
     with _V74_BG_LOCK:
-        _V74_BG_RESULT = copy.deepcopy(out)
+        _V74_BG_RESULT = out
         _V74_BG_META["last_scan_epoch"] = time.time()
         _V74_BG_META["last_scan_ms"] = round(scan_ms, 2)
         _V74_BG_META["last_error"] = None
@@ -109,7 +112,7 @@ def _automatic_call_scan(svc, out: dict) -> dict:
     global _V74_AUTO_DEEP_LAST, _V74_AUTO_CALLS
     now = time.time()
     if now - _V74_AUTO_DEEP_LAST < _V74_AUTO_DEEP_INTERVAL_SEC:
-        return copy.deepcopy(_V74_AUTO_CALLS)
+        return dict(_V74_AUTO_CALLS)
     _V74_AUTO_DEEP_LAST = now
     rows = list(((out.get("workspaces") or {}).get("calls") or {}).get("hero_ready") or [])
     if not rows:
@@ -156,7 +159,12 @@ def _automatic_call_scan(svc, out: dict) -> dict:
             hero = hero5_execution_plan(sym, row, pack, chart)
             call = track_call_plan(call_engine_plan(sym, row, pack, chart, now_epoch=now))
             emit_call_alert(call)
-            results.append({"symbol":sym,"stage":row.get("stage"),"score":row.get("score"),"call":call,"hero5":hero,"strike_intelligence":pack,"read_only":True})
+            results.append({
+                "symbol":sym,"stage":row.get("stage"),"score":row.get("score"),
+                "ltp":row.get("ltp"),"change_pct":row.get("change_pct"),
+                "data_status":row.get("data_status"),"source":row.get("source"),
+                "call":call,"hero5":hero,"strike_intelligence":pack,"read_only":True
+            })
         except Exception as exc:
             errors.append({"symbol":sym,"error":str(exc)[:180]})
     _V74_AUTO_CALLS = {
@@ -164,11 +172,11 @@ def _automatic_call_scan(svc, out: dict) -> dict:
         "updated_epoch":now, "interval_sec":_V74_AUTO_DEEP_INTERVAL_SEC,
         "max_promoted_per_cycle":_V74_AUTO_DEEP_MAX, "automatic_indices":_V74_AUTO_INDEX_CODES,
         "results":results, "errors":errors,
-        "journal": call_journal(100),
+        "journal": call_journal(40),
         "read_only":True, "execution_enabled":False,
         "policy":"Automatic CALL ENGINE deep scan is candidate-first and rate-bounded. It never places orders; WAIT/DO NOT CHASE are valid outputs and call quality is not a profit probability.",
     }
-    return copy.deepcopy(_V74_AUTO_CALLS)
+    return dict(_V74_AUTO_CALLS)
 
 def _background_scan_once() -> bool:
     svc = service_for("default")
@@ -205,17 +213,22 @@ def _hot_lane_scan_once() -> bool:
     if not svc.authenticated or getattr(svc, "token_invalid", False):
         return False
     with _V74_BG_LOCK:
-        cached = copy.deepcopy(_V74_BG_RESULT) if _V74_BG_RESULT is not None else None
-    hot_rows = list((cached or {}).get("hot_lane") or [])
-    symbols = [str(x.get("symbol") or "").upper() for x in hot_rows[:40] if x.get("symbol")]
+        hot_rows = [dict(x) for x in (((_V74_BG_RESULT or {}).get("hot_lane") or [])[:20])]
+    symbols = [str(x.get("symbol") or "").upper() for x in hot_rows if x.get("symbol")]
     if not symbols:
         return False
-    snap = svc.snapshot()
-    source_rows = []
-    for key in ("fno_universe", "stocks", "stock_rows", "sector_heatmap"):
-        val = snap.get(key)
-        if isinstance(val, list):
-            source_rows.extend(x for x in val if isinstance(x, dict))
+    # LIVEFIX4: do not materialize the complete service snapshot every hot-lane tick.
+    # Pull only the promoted symbols directly from the already-updated provider maps.
+    wanted=set(symbols); source_rows=[]
+    try:
+        with svc.lock:
+            vals=list(getattr(svc,"fno_equities",{}).values()) or list(getattr(svc,"sector_equities",{}).values())
+            for x in vals:
+                sym=str(x.get("symbol") or x.get("tradingsymbol") or "").upper()
+                if sym in wanted:
+                    source_rows.append(dict(x))
+    except Exception:
+        source_rows=[]
     bysym = {str(x.get("symbol") or x.get("tradingsymbol") or "").upper(): x for x in source_rows}
     updates=[]
     for sym in symbols:
@@ -285,18 +298,24 @@ def _stop_v74_continuous_scanner():
 
 
 def _live_v74_result(request: Request):
-    """Read the server-side scanner cache only; never run V74 because a page requested it."""
+    """Read the server-side scanner cache only; never run V74 because a page requested it.
+
+    LIVEFIX4 avoids deep-copying the complete cached universe for every HTTP request.
+    Scanner cycles replace the cached root object rather than mutating it, so a shallow
+    response envelope is enough and dramatically reduces CPU/RAM pressure.
+    """
     svc = request_service(request)
     if not svc.authenticated or getattr(svc, "token_invalid", False):
         return svc, None
     with _V74_BG_LOCK:
-        cached = copy.deepcopy(_V74_BG_RESULT) if _V74_BG_RESULT is not None else None
+        root = _V74_BG_RESULT
     meta = _background_meta()
-    if cached is None:
+    if root is None:
         return svc, None
+    cached = dict(root)
     cached["continuous_scanner"] = meta
-    cached["automated_call_engine"] = copy.deepcopy(_V74_AUTO_CALLS)
-    cached["automated_execution"] = copy.deepcopy(_V74_AUTO_CALLS)
+    cached["automated_call_engine"] = dict(_V74_AUTO_CALLS)
+    cached["automated_execution"] = dict(_V74_AUTO_CALLS)
     if not meta.get("fresh"):
         cached["data_status"] = "STALE"
         cached["scanner_warning"] = "Automated scanner cache is stale; no request-triggered scan was substituted."
@@ -306,9 +325,9 @@ def _live_v74_result(request: Request):
 def _cached_candidate(symbol: str):
     sym = str(symbol or "").upper()
     with _V74_BG_LOCK:
-        cached = copy.deepcopy(_V74_BG_RESULT) if _V74_BG_RESULT is not None else None
-    rows = list(((cached or {}).get("radar") or {}).get("candidates") or [])
-    return next((r for r in rows if str(r.get("symbol") or "").upper() == sym), None)
+        rows = (((_V74_BG_RESULT or {}).get("radar") or {}).get("candidates") or [])
+        row = next((r for r in rows if str(r.get("symbol") or "").upper() == sym), None)
+    return copy.deepcopy(row) if row is not None else None
 
 
 def _live_snapshot(request: Request):
