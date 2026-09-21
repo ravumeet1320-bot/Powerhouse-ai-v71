@@ -1,0 +1,75 @@
+POWERHOUSE AI V74.5 — FINAL VERIFICATION REPORT
+===============================================
+Build: POWERHOUSE-AI-V74.5-ADAPTIVE-INTELLIGENCE-MASTER-FINAL
+Date: 2026-09-21
+Deployment status: NOT DEPLOYED
+
+BASELINE
+- Built additively on the verified V74.4 cumulative package.
+- V74.3 locked UI/API stack preserved.
+- V74.4 master UI/API stack preserved.
+- Production entrypoint remains: uvicorn v74_app:app --host 0.0.0.0 --port $PORT
+
+V74.5 IMPLEMENTATION VERIFIED
+- Market Regime Brain
+- India VIX risk/context intelligence
+- Data Quality PASS/CAUTION/BLOCK gate
+- Adaptive regime-specific evidence weighting
+- Setup lifecycle
+- Two-snapshot temporal confirmation/debounce
+- Contradiction resolver
+- Separate signal-quality and execution-quality scores
+- Uncertainty and NO TRADE abstention
+- Late/overextension rejection
+- Cross-market context from available provider rows only
+- Correlation guard
+- Market Memory state recording through the existing V74.3 storage layer
+- What Changed state deltas
+- Accuracy/calibration reporting contract
+- Smart Alert Manager with duplicate cooldown and calm default UI
+- Production test-alert suppression in the normal V74.5 stream
+- Legacy V74.4 server push OFF by default; explicit env opt-in required
+- V74.5 service worker filters push to important/critical severity
+- V74.5 5-card decision strip and new adaptive/VIX/memory/system views
+
+REGRESSION / TEST RESULT
+- Python compile: PASS
+- Frontend JavaScript syntax (node --check): PASS
+- Historical + current Python test sweep: 33 / 33 PASS
+  Includes TEST_V53 through V74.5 and SELF_TEST_AI.
+- V74.4 preserved-master regression: PASS
+- V74.5 final accuracy/safety test: PASS
+- HTTP smoke test: PASS
+  * /
+  * /v744
+  * /v743
+  * /v744-light
+  * /api/v74.5/feature-manifest
+  * /api/v74.5/alerts
+- Accidental credential/private-key pattern scan: PASS (0 actual secret-pattern hits)
+
+TRUTH / SAFETY ASSERTIONS
+- No synthetic market values added.
+- Missing/unavailable VIX remains explicit; it is not fabricated.
+- VIX is contextual/risk evidence and never a standalone BUY/SELL trigger.
+- High confidence is not represented as guaranteed accuracy or guaranteed profit.
+- Broker order placement remains disabled/read-only.
+- Low-quality data, poor execution, contradiction, uncertainty, late entry or extreme volatility can force WAIT / NO TRADE.
+
+ALERT UX FIX
+- V74.5 defaults to IMPORTANT_ONLY.
+- Only one on-screen toast is displayed at a time.
+- INFO/test noise is suppressed from the normal stream.
+- Duplicate alerts are cooled down.
+- SILENT / IMPORTANT_ONLY / ALL MEANINGFUL modes are available.
+- Legacy push is disabled by default unless POWERHOUSE_LEGACY_PUSH=1.
+
+LIMITATIONS / POST-DEPLOY CHECKS
+- No Render deployment was performed.
+- No live Upstox entitlement or production-market session was available in this offline build verification.
+- Actual provider latency, option-chain entitlement, WebSocket behavior and live India VIX availability must be verified after an explicitly approved deployment.
+- Walk-forward/champion-vs-challenger policies are enforced as promotion requirements; they do not imply that every strategy has already accumulated a statistically sufficient live sample.
+
+FINAL RESULT
+SOURCE/OFFLINE RELEASE CANDIDATE: PASS
+DEPLOYMENT: HELD / NOT PERFORMED

@@ -1,4 +1,4 @@
 from __future__ import annotations
 import os
-os.environ.setdefault("V74_AUTO_INDEX_CODES","NIFTY,BANKNIFTY,MIDCPNIFTY,SENSEX")
-from v744_app import app
+os.environ.setdefault("V74_AUTO_INDEX_CODES", "NIFTY,BANKNIFTY,MIDCPNIFTY,SENSEX")
+from v745_app import app

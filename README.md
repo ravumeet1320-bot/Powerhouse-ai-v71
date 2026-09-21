@@ -1,3 +1,35 @@
+# POWERHOUSE AI V74.5 — ADAPTIVE INTELLIGENCE MASTER FINAL
+
+Current production entrypoint: `uvicorn v74_app:app --host 0.0.0.0 --port $PORT`. The root UI is `static/v745.html`. V74.5 is additive over the preserved V74.3/V74.4 stack and is designed to reduce false/late/noisy signals rather than increase signal count.
+
+Key V74.5 additions: India VIX intelligence, Market Regime Brain, Data Quality Gate, adaptive weighting, Setup Lifecycle, two-snapshot temporal confirmation, contradiction/uncertainty resolver, separate signal and execution quality, late/overextension rejection, NO TRADE abstention, cross-market context, correlation guard, Market Memory, What Changed, calibrated accuracy reporting, and a calm Smart Alert Manager. Legacy V74.4 server push is off by default unless `POWERHOUSE_LEGACY_PUSH=1`.
+
+Preserved UIs: `/v744`, `/v743`, `/v744-light`. Main V74.5 APIs are under `/api/v74.5/*`. See `README_V74_5_FINAL.md`, `CHANGELOG_V74_5_FINAL.txt`, `FINAL_SCOPE_LOCK_V74_5.txt`, and `VERIFICATION_REPORT_V74_5_FINAL.txt`.
+
+The system remains read-only decision support: no broker order placement, no synthetic market values, and no guaranteed accuracy/profit claim.
+
+---
+
+# POWERHOUSE AI V74.3 PRO — FINAL LOCKED INTELLIGENCE OS
+
+This is the final locked cumulative build after live mobile validation and one official-source research pass. The final UI is `static/v743.html`; Render can continue to start `uvicorn v74_app:app --host 0.0.0.0 --port $PORT`.
+
+## Final locked modules
+- Index Calls: NIFTY, BANKNIFTY, MIDCPNIFTY, SENSEX only.
+- Chart Pro: real provider candles, real RSI/MACD calculation, Demand/Supply, Support/Resistance, Call/Put OI walls.
+- Level War Room: level health, CE/PE OI change, option volume, Greeks, RVOL, depth pressure and evidence-based break pressure.
+- Ultra Derivatives: option chain, OI/previous OI/ΔOI, volume, IV/Delta/Gamma/Theta/Vega, PCR and walls.
+- Separate Heatwave and Sector Analytics with Sector Hero/Laggard enrichment.
+- Auto Trender 3.0 with trend, strength, acceleration, RVOL, OI change and action.
+- Smart Money, FII/DII aggregate footprint, Circuit Hunter, Expiry Hero, Alerts, Accuracy, Memory, Replay, Audit and System Regression Guard.
+- Dark / Light / System responsive desktop + mobile UI.
+- Truth-preserving states: LIVE / REST / STALE / N/A / WAIT. No demo market values in production.
+- Read-only. No broker execution. Accuracy is measured empirically; no 100% win-rate claim.
+
+See `FINAL_RESEARCH_LOCK_V74_3.md`, `CHANGELOG_v74_3_FINAL_LOCKED.txt`, `VERIFICATION_REPORT_V74_3_FINAL_LOCKED.txt`, and `TEST_V74_3_FINAL_LOCKED.py`.
+
+---
+
 # POWERHOUSE AI V72.2 — Timing + Execution Intelligence + Pastel Rainbow Mobile OS
 
 V72 is a cumulative read-only upgrade over V71.5. It keeps the existing scanners, call-recovery tiers, universal F&O census, Hero engines and chart stack, then adds an earlier pre-move decision layer plus the approved light pastel-rainbow mobile command UI.

@@ -1,6 +1,6 @@
 
 from __future__ import annotations
-import copy, threading, time, statistics
+import copy, threading, time, statistics, os
 from collections import defaultdict, deque
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,6 +39,10 @@ INDEXES=("NIFTY","BANKNIFTY","MIDCPNIFTY","SENSEX")
 def _iso(e=None): return datetime.fromtimestamp(float(e or time.time()),timezone.utc).isoformat()
 
 def _push_alert(item):
+    # V74.5 production-safety default: legacy server push is opt-in.
+    # The legacy alert API remains preserved, but it cannot create notification storms
+    # unless POWERHOUSE_LEGACY_PUSH=1 is explicitly configured.
+    if os.getenv("POWERHOUSE_LEGACY_PUSH", "0") != "1": return
     if item.get("priority") not in ("P0","P1"): return
     try:
         precision.queue_push({"title":item.get("title") or "POWERHOUSE AI","body":item.get("body") or "Market state changed",
@@ -117,10 +121,13 @@ def _derivative_pulse(symbol):
     return summary
 
 def _derivative_loop():
-    while not _STOP.wait(15):
-        for s in ("NIFTY","BANKNIFTY"):
-            try:_derivative_pulse(s)
-            except Exception:pass
+    # Resource-stable round-robin: all locked indexes are covered without
+    # bursting four option-chain calls at the same instant on small instances.
+    i=0
+    while not _STOP.wait(6):
+        symbol=INDEXES[i%len(INDEXES)]; i+=1
+        try:_derivative_pulse(symbol)
+        except Exception:pass
 
 def _remove_get(path):
     app.router.routes[:]=[r for r in app.router.routes if not (getattr(r,"path",None)==path and "GET" in (getattr(r,"methods",None) or set()))]
@@ -128,9 +135,21 @@ def _remove_get(path):
 _remove_get("/")
 @app.get("/")
 def home():
-    h={"Cache-Control":"no-store, no-cache, must-revalidate, max-age=0","Pragma":"no-cache","Expires":"0","X-Powerhouse-Build":"V74.4-MASTER"}
+    h={"Cache-Control":"no-store, no-cache, must-revalidate, max-age=0","Pragma":"no-cache","Expires":"0","X-Powerhouse-Build":"V74.4-MASTER-VERIFIED"}
     if UI.exists():return FileResponse(UI,headers=h)
     return prev.v743_home()
+
+@app.get("/v743")
+def v743_locked_ui():
+    ui=ROOT/"static"/"v743.html"
+    if ui.exists():return FileResponse(ui,headers={"Cache-Control":"no-store","X-Powerhouse-Build":"V74.3-LOCKED-PRESERVED"})
+    raise HTTPException(status_code=404,detail="V74.3 locked UI unavailable")
+
+@app.get("/v744-light")
+def v744_light_draft():
+    ui=ROOT/"static"/"v744_light_draft.html"
+    if ui.exists():return FileResponse(ui,headers={"Cache-Control":"no-store","X-Powerhouse-Build":"V74.4-LIGHT-DRAFT"})
+    raise HTTPException(status_code=404,detail="V74.4 light draft unavailable")
 
 def _call_rows():
     try:return list((base._V74_AUTO_CALLS or {}).get("results") or [])

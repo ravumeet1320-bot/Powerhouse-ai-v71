@@ -1,0 +1,13 @@
+POWERHOUSE AI V74.5 FINAL SCOPE LOCK
+====================================
+
+1. Preserve every locked V74.3/V74.4 production capability.
+2. V74.5 is additive and accuracy-first.
+3. Final actionable state remains one thesis per instrument: BUY / SELL / BUY CE / BUY PE / WAIT / NO TRADE.
+4. Bad/stale data, poor execution quality, excessive uncertainty, contradiction, late entry or extreme volatility may force abstention.
+5. India VIX is mandatory context when available but never a standalone signal.
+6. Alerts must be calm by default: no production test noise, duplicate cooldown, one visible toast, user-selectable DND mode.
+7. Confidence must remain distinct from observed accuracy; no guarantee language.
+8. Replay/audit/memory must preserve point-in-time evidence and never use future information in historical decisions.
+9. Broker order placement remains disabled/read-only unless a future separately approved design changes that policy.
+10. No deployment until the user explicitly authorizes it.

@@ -1,0 +1,73 @@
+POWERHOUSE AI V74.5 — ADAPTIVE INTELLIGENCE MASTER FINAL
+=========================================================
+Status: SOURCE/OFFLINE VERIFIED. NOT DEPLOYED.
+
+BASELINE / REGRESSION RULE
+- V74.3 locked modules remain preserved.
+- V74.4 Move Radar / Execution / Derivative Pulse / Behaviour Lab remain preserved.
+- V74.5 is additive; the production entrypoint is still v74_app:app.
+- /v743, /v744 and /v744-light remain available for preserved legacy UI access.
+
+V74.5 ACCURACY-FIRST ADDITIONS
+1. Market Regime Brain
+   - TRENDING UP / TRENDING DOWN / RANGE-MIXED / TRANSITION / HIGH VOLATILITY.
+   - Index breadth, agreement, dispersion and VIX context are used.
+2. India VIX Intelligence
+   - Level, daily change, short-horizon acceleration, risk regime, session z-score/percentile when enough observations exist.
+   - VIX is contextual/risk evidence only; never a standalone trade signal.
+3. Data Quality Gate
+   - PASS / CAUTION / BLOCK based on provider status and freshness metadata.
+   - Stale/unavailable inputs reduce confidence or block trade-ready states.
+4. Adaptive Weighting
+   - Evidence weights change by market regime instead of using one fixed weighting set.
+5. Setup Lifecycle
+   - FORMING / CONFIRMING / READY / WATCH / WEAKENING / INVALIDATED.
+6. Temporal Confirmation / Debounce
+   - A raw READY setup must persist for two adaptive snapshots before V74.5 exposes it as qualified.
+7. Contradiction Resolver
+   - Independent evidence is combined and conflict ratio is measured.
+8. Signal Quality vs Execution Quality
+   - Direction/setup quality is separate from liquidity/spread/R:R execution quality.
+9. Uncertainty + Abstention
+   - High uncertainty, low execution quality, bad data, blockers or mixed evidence produce WAIT / NO TRADE.
+10. Late / Overextension Guard
+    - Chasing beyond instrument-specific trigger-distance thresholds is rejected.
+11. Cross-Market Context
+    - Uses only available verified global rows; missing feeds are omitted rather than fabricated.
+12. Correlation Guard
+    - Warns when apparently separate qualified setups are correlated exposures.
+13. Market Memory
+    - Material regime/risk/data/VIX/best-setup state changes are stored using existing V74.3 durable memory infrastructure.
+14. What Changed
+    - Regime, risk, VIX, data gate and best-setup state deltas are exposed.
+15. Accuracy / Calibration Contract
+    - Observed accuracy remains separated from confidence.
+    - Walk-forward, no future leakage, realistic spread/slippage and champion/challenger shadow-first promotion are explicit policies.
+
+SMART ALERT MANAGER
+- Default UI mode: IMPORTANT_ONLY.
+- One visible toast at a time.
+- Normal UI suppresses INFO and test alerts.
+- Duplicate alert cooldown.
+- Alert history remains available in the bell center.
+- SILENT / IMPORTANT_ONLY / ALL MEANINGFUL modes are local user preferences.
+- Legacy V74.4 server push is OFF by default; opt in only with POWERHOUSE_LEGACY_PUSH=1.
+- Service worker displays only CRITICAL / TRADE READY (or legacy P0/P1) pushes.
+
+UI / MOBILE
+- New 5-card decision strip: Market Regime, Best Qualified Setup, Risk State, Data Health, India VIX.
+- New ADAPTIVE CORE, VIX/RISK, MARKET MEMORY and V74.5 SYSTEM tabs.
+- ALERTS and ACCURACY are upgraded to V74.5 views on the V74.5 root UI.
+- Missing/invalid price values use an em dash in the new price-safe display path rather than fake 0.00.
+- Existing V74.3/V74.4 UI surfaces remain preserved.
+
+PRODUCTION SAFETY
+- No broker order placement.
+- No guaranteed accuracy/profit language.
+- No synthetic market values introduced.
+- Production test-alert controls hidden from V74.5 normal UI.
+- Existing legacy test endpoint remains preserved only for compatibility/debug access.
+
+DEPLOYMENT
+- No deployment performed in this build process.
+- Live Upstox entitlement, actual market-data availability and Render production behavior require post-deploy verification when explicitly approved.

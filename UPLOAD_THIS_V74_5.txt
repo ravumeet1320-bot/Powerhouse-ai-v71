@@ -1,0 +1,7 @@
+PRIMARY PACKAGE TO KEEP / UPLOAD LATER:
+POWERHOUSE_AI_V74_5_ADAPTIVE_INTELLIGENCE_MASTER_FINAL_FULL.zip
+
+If an existing server already contains the verified V74.4 cumulative baseline, the optional patch package is:
+POWERHOUSE_AI_V74_5_ADAPTIVE_INTELLIGENCE_MASTER_FINAL_UPLOAD_ONLY.zip
+
+Deployment has NOT been performed.
