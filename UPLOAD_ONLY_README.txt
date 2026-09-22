@@ -1,8 +1,4 @@
-POWERHOUSE AI V74.5 UPLOAD-ONLY PATCH
-=====================================
-Use this patch only when the target already contains the verified V74.4 cumulative baseline.
-Copy/replace these files at the same relative paths.
-The production entrypoint remains v74_app:app.
-No deployment was performed by this build process.
-
-Important: v744_app.py is included because V74.5 changes legacy push behavior to opt-in by default.
+POWERHOUSE AI V74.6 AGGRESSIVE DYNAMIC — upload-only patch.
+Use only on top of the verified V74.5 cumulative project.
+Production entrypoint remains: uvicorn v74_app:app --host 0.0.0.0 --port $PORT
+Default profile is AGGRESSIVE. Do not delete existing V74.3/V74.4/V74.5 files.

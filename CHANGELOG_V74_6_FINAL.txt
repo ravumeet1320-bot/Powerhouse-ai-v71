@@ -1,0 +1,7 @@
+POWERHOUSE AI V74.6 AGGRESSIVE DYNAMIC MASTER FINAL
+- Added BALANCED / AGGRESSIVE / TURBO profiles; default AGGRESSIVE.
+- Added dynamic thresholds tied to regime, VIX, data quality and execution quality.
+- Added EARLY READY, urgency score, aggression score, adaptive temporal confirmation.
+- Faster V74.6 command-center refresh.
+- Preserved all V74.3/V74.4/V74.5 features and hard integrity gates.
+- Broker execution remains disabled.
