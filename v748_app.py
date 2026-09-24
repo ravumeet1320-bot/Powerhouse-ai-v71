@@ -15,12 +15,20 @@ VERSION = "74.8"
 RELEASE = "V74.8 OLD-GOOD + MOVE INTELLIGENCE + EXPIRY HERO MERGE"
 INDEXES = {"NIFTY","BANKNIFTY","MIDCPNIFTY","SENSEX"}
 
-# Replace only root UI. All V74.7/V74.6/V74.5/V74.3 routes remain registered.
 base._remove_get("/")
+
 @app.get("/")
 def v748_home():
     if UI.exists():
-        return FileResponse(UI, headers={"Cache-Control":"no-store, no-cache, must-revalidate, max-age=0","Pragma":"no-cache","X-Powerhouse-Build":"V74.8-FINAL-MERGE"})
+        return FileResponse(
+            UI,
+            headers={
+                "Cache-Control":"no-store, no-cache, must-revalidate, max-age=0",
+                "Pragma":"no-cache",
+                "Expires":"0",
+                "X-Powerhouse-Build":"V74.8-FINAL-HOTFIX",
+            },
+        )
     return base.home()
 
 def _index_setups(request: Request, profile: str="AGGRESSIVE"):
@@ -40,8 +48,7 @@ def _expiry_value(x: Dict[str,Any]):
 
 def _today(exp):
     if not exp:return None
-    s=str(exp)[:10]
-    try:return datetime.fromisoformat(s).date()==datetime.now(IST).date()
+    try:return datetime.fromisoformat(str(exp)[:10]).date()==datetime.now(IST).date()
     except Exception:return None
 
 def _hero_state(x, auto):
@@ -51,11 +58,10 @@ def _hero_state(x, auto):
     meta=h.get("meta_score") or h.get("score") or ad.get("confidence_score") or x.get("score")
     expiry=_expiry_value(x)
     is_today=_today(expiry)
-    if action in {"WAIT","WATCH","NONE","NO TRADE",""}: state="WATCH"
-    else: state="ARMED"
-    # Existing engine remains authority: do not manufacture a trigger merely because it is expiry day.
+    state="WATCH" if action in {"WAIT","WATCH","NONE","NO TRADE",""} else "ARMED"
     lifecycle=str(ad.get("lifecycle") or x.get("stage") or auto.get("stage") or "").upper()
-    if state=="ARMED" and lifecycle in {"ENTRY READY","MOVE ACTIVE","TRIGGERED"}: state="TRIGGERED"
+    if state=="ARMED" and lifecycle in {"ENTRY READY","MOVE ACTIVE","TRIGGERED"}:
+        state="TRIGGERED"
     return {"symbol":str(x.get("symbol") or "").upper(),"ltp":x.get("ltp"),"change_pct":x.get("change_pct"),"expiry":expiry,"expiry_today":is_today,"state":state,"action":action,"hero":h,"adaptive":ad,"auto":auto,"meta_score":meta,"read_only":True}
 
 @app.get("/api/v74.8/index-workspace")
@@ -63,7 +69,8 @@ def index_workspace(request:Request, profile:str=Query("AGGRESSIVE")):
     snap,setups,amap=_index_setups(request,profile)
     rows=[]
     for x in setups:
-        sym=str(x.get("symbol") or "").upper(); rows.append(_hero_state(x,amap.get(sym) or {}))
+        sym=str(x.get("symbol") or "").upper()
+        rows.append(_hero_state(x,amap.get(sym) or {}))
     return {"version":VERSION,"release":RELEASE,"rows":rows,"source":"preserved V74.6/V74.7 index stack","read_only":True}
 
 @app.get("/api/v74.8/expiry-hero")
@@ -71,8 +78,7 @@ def expiry_hero(request:Request, profile:str=Query("AGGRESSIVE")):
     snap,setups,amap=_index_setups(request,profile)
     rows=[_hero_state(x,amap.get(str(x.get("symbol") or "").upper()) or {}) for x in setups]
     today=[x for x in rows if x.get("expiry_today") is True]
-    active=today or rows
-    return {"version":VERSION,"engine":"EXPIRY-DAY GAMMA & LIQUIDITY HERO","today":datetime.now(IST).date().isoformat(),"expiry_detected":bool(today),"rows":active,"states":["WATCH","ARMED","TRIGGERED","INVALIDATED"],"policy":"Scanner runs on index setups; no forced trade. Existing call/adaptive engine is authoritative and missing expiry data is not invented.","read_only":True,"execution_enabled":False}
+    return {"version":VERSION,"engine":"EXPIRY-DAY GAMMA & LIQUIDITY HERO","today":datetime.now(IST).date().isoformat(),"expiry_detected":bool(today),"rows":today or rows,"states":["WATCH","ARMED","TRIGGERED","INVALIDATED"],"policy":"No forced trade; preserved engine remains authoritative.","read_only":True,"execution_enabled":False}
 
 @app.get("/api/v74.8/system")
 def v748_system(request:Request):
