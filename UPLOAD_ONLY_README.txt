@@ -1,4 +1,13 @@
-POWERHOUSE AI V74.6 AGGRESSIVE DYNAMIC — upload-only patch.
-Use only on top of the verified V74.5 cumulative project.
-Production entrypoint remains: uvicorn v74_app:app --host 0.0.0.0 --port $PORT
-Default profile is AGGRESSIVE. Do not delete existing V74.3/V74.4/V74.5 files.
+UPLOAD THESE FILES TO THE REPOSITORY ROOT, PRESERVING PATHS:
+
+v747_engine.py
+v747_app.py
+static/v747.html
+v74_app.py   <-- upload/replace LAST
+
+Optional documentation/tests:
+README_V74_7_FINAL.md
+CHANGELOG_V74_7_FINAL.txt
+TEST_V74_7_FINAL.py
+
+Existing V74.6/V74.5/V74.4/V74.3 files must remain untouched.

@@ -1,0 +1,11 @@
+POWERHOUSE AI V74.7 MASTER FINAL
+- Added whole-NSE cash scanner and symmetric UP/DOWN move discovery.
+- Added liquidity/turnover fast lane, depth pressure and historical hot-baseline hydration.
+- Added pre-move lifecycle and SMC-style Index + Stock Auto Trender.
+- Added UC + LC Circuit Hunter and Blind-Spot Sentinel.
+- Added FIFO one-at-a-time alert presentation with backend lifecycle dedupe.
+- Rebuilt chart presentation to avoid distant wall scale compression and surface patterns/smart-flow zones.
+- Added NSE FII/DII + participant OI adapters with explicit fallback/health states.
+- Added WHY MOVING? corporate-announcement adapter and flow classification.
+- Preserved V74.6 at /v746 and all older APIs/routes.
+- Broker execution remains disabled by design.
