@@ -1,13 +1,5 @@
 services:
   - type: web
-    name: powerhouse-ai-v56
+    name: powerhouse-ai-v71
     runtime: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn v74_app:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /api/health
-    envVars:
-      - key: UPSTOX_ENABLE_WEBSOCKET
-        value: "true"
-      - key: UPSTOX_ENABLE_BREADTH
-        value: "true"
+    startCommand: uvicorn v75_app:app --host 0.0.0.0 --port $PORT
