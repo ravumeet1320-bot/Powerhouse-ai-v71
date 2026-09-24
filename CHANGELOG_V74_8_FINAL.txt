@@ -1,0 +1,1 @@
+V74.8: additive old-good merge; index click workspace; dedicated alert dock; heatmap surface; expiry hero surface; V74.7 preserved; no forced trade; no broker execution.
