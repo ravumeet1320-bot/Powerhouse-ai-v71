@@ -2,4 +2,4 @@ services:
   - type: web
     name: powerhouse-ai-v71
     runtime: python
-    startCommand: uvicorn v75_app:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn v75_isolated_app:app --host 0.0.0.0 --port $PORT
